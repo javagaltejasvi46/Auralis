@@ -9,7 +9,7 @@ Your app has been upgraded and is now running! Here's what's been set up:
 - **Status**: ✅ Active and responding
 - **Database**: SQLite database created successfully
 
-### Frontend (React Native + Expo SDK 54) - ✅ RUNNING
+### Frontend (React Native + Expo SDK 49) - ✅ RUNNING
 - **Status**: ✅ Expo development server started with SDK 54
 - **Compatibility**: ✅ Now compatible with latest Expo Go app
 - **Testing**: Use Expo Go app on your phone
