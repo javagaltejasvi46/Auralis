@@ -2,6 +2,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 import os
 import uuid
 from datetime import datetime
@@ -9,6 +10,7 @@ from typing import List
 import shutil
 from models import AudioRecord, get_db, create_tables
 from config import settings
+from deep_translator import GoogleTranslator
 
 app = FastAPI(
     title=settings.API_TITLE,
@@ -102,6 +104,33 @@ async def delete_recording(file_id: str, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+class TranslateRequest(BaseModel):
+    text: str
+    target_language: str
+    source_language: str = 'auto'
+
+@app.post("/translate")
+async def translate_text(request: TranslateRequest):
+    """Translate text to target language"""
+    try:
+        # Use deep-translator for translation
+        translator = GoogleTranslator(
+            source=request.source_language,
+            target=request.target_language
+        )
+        
+        translated = translator.translate(request.text)
+        
+        return {
+            "success": True,
+            "original_text": request.text,
+            "translated_text": translated,
+            "source_language": request.source_language,
+            "target_language": request.target_language
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8002)
