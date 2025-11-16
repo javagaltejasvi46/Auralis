@@ -4,17 +4,82 @@ import json
 import os
 import base64
 import tempfile
-from vosk import Model, KaldiRecognizer
-from audio_processor import convert_to_wav, process_audio_with_vosk
+from faster_whisper import WhisperModel
+import subprocess
 
-# Load Vosk models
-MODELS = {
-    'hindi': Model("models/vosk-model-small-hi-0.22"),
-    'english': Model("models/vosk-model-small-en-us-0.15")
+# Load Faster-Whisper medium model (better for Hindi Devanagari)
+print("🔄 Loading Faster-Whisper medium model...")
+model = WhisperModel("medium", device="cpu", compute_type="int8")
+print("✅ Faster-Whisper model loaded successfully")
+print("💡 Medium model provides native Devanagari output for Hindi")
+
+# Language mapping
+LANGUAGE_MAP = {
+    'hindi': 'hi',
+    'english': 'en'
 }
 
-print(f"✅ Loaded models: {', '.join(MODELS.keys())}")
 print("🎤 Real-time transcription server starting...")
+
+def transcribe_audio_file(audio_path, language='en'):
+    """Transcribe audio file using Faster-Whisper"""
+    try:
+        print(f"🎯 Transcribing with Faster-Whisper (language: {language})...")
+        
+        # Transcribe with Faster-Whisper
+        # Medium model natively outputs Devanagari for Hindi
+        segments, info = model.transcribe(
+            audio_path,
+            language=language if language != 'auto' else None,  # Let Whisper detect if auto
+            beam_size=5,
+            vad_filter=False,  # Disable VAD to avoid onnxruntime dependency
+            task='transcribe',  # Use transcribe (not translate) to preserve native script
+            condition_on_previous_text=False  # Better for short audio clips
+        )
+        
+        # Collect all segments
+        text = " ".join([segment.text for segment in segments])
+        result = text.strip()
+        
+        print(f"📝 Transcription: {result}")
+        print(f"📊 Detected language: {info.language}, probability: {info.language_probability:.2f}")
+        
+        return result
+    except Exception as e:
+        print(f"❌ Faster-Whisper transcription error: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+def convert_audio_to_wav(input_path):
+    """Convert audio to WAV format using ffmpeg"""
+    try:
+        print(f"🔄 Converting audio to WAV format with ffmpeg...")
+        output_path = input_path.rsplit('.', 1)[0] + '_converted.wav'
+        
+        # Use ffmpeg to convert
+        cmd = [
+            'ffmpeg',
+            '-i', input_path,
+            '-ar', '16000',  # 16kHz sample rate
+            '-ac', '1',      # Mono
+            '-y',            # Overwrite output
+            output_path
+        ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.returncode == 0 and os.path.exists(output_path):
+            print(f"✅ Converted to WAV: {output_path}")
+            return output_path
+        else:
+            print(f"❌ FFmpeg conversion failed: {result.stderr}")
+            return None
+    except Exception as e:
+        print(f"❌ Audio conversion error: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
 
 async def transcribe_audio(websocket):
     """Handle WebSocket connection for real-time transcription"""
@@ -24,16 +89,14 @@ async def transcribe_audio(websocket):
         # Send welcome message with available languages
         await websocket.send(json.dumps({
             'type': 'connected',
-            'message': 'Transcription server ready',
-            'languages': list(MODELS.keys())
+            'message': 'Faster-Whisper transcription server ready',
+            'languages': list(LANGUAGE_MAP.keys())
         }))
         print("📤 Sent welcome message")
         
         # Default language
         current_language = 'hindi'
-        recognizer = KaldiRecognizer(MODELS[current_language], 16000)
-        recognizer.SetWords(True)
-        print(f"✅ Recognizer created for {current_language}")
+        print(f"✅ Default language set to: {current_language}")
     except Exception as e:
         print(f"❌ Error in connection setup: {e}")
         import traceback
@@ -41,51 +104,56 @@ async def transcribe_audio(websocket):
         raise
     
     message_count = 0
-    audio_bytes_received = 0
+    audio_buffer = []
     
     try:
         async for message in websocket:
             message_count += 1
             
             if isinstance(message, bytes):
-                audio_bytes_received += len(message)
-                print(f"🎵 Received audio chunk #{message_count}: {len(message)} bytes (Total: {audio_bytes_received} bytes)")
+                # Collect audio chunks for batch processing
+                audio_buffer.append(message)
+                print(f"🎵 Received audio chunk #{message_count}: {len(message)} bytes (Buffer: {len(audio_buffer)} chunks)")
                 
-                # Process audio data
-                if recognizer.AcceptWaveform(message):
-                    # Final result
-                    result = json.loads(recognizer.Result())
-                    print(f"📊 Final result: {result}")
-                    if result.get('text'):
-                        response = json.dumps({
-                            'type': 'final',
-                            'text': result['text']
-                        })
-                        await websocket.send(response)
-                        print(f"📝 Sent final: {result['text']}")
-                else:
-                    # Partial result
-                    partial = json.loads(recognizer.PartialResult())
-                    if partial.get('partial'):
-                        response = json.dumps({
-                            'type': 'partial',
-                            'text': partial['partial']
-                        })
-                        await websocket.send(response)
-                        print(f"⏳ Sent partial: {partial['partial']}")
+                # Process every 10 chunks or when buffer is large enough
+                if len(audio_buffer) >= 10:
+                    print(f"📦 Processing audio buffer...")
+                    
+                    # Combine audio chunks
+                    combined_audio = b''.join(audio_buffer)
+                    audio_buffer = []
+                    
+                    # Save to temp file
+                    with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_file:
+                        temp_file.write(combined_audio)
+                        temp_path = temp_file.name
+                    
+                    try:
+                        # Transcribe with Whisper
+                        whisper_lang = LANGUAGE_MAP.get(current_language, 'en')
+                        result_text = transcribe_audio_file(temp_path, whisper_lang)
+                        
+                        if result_text:
+                            await websocket.send(json.dumps({
+                                'type': 'partial',
+                                'text': result_text
+                            }))
+                            print(f"⏳ Sent partial: {result_text}")
+                    finally:
+                        # Clean up temp file
+                        if os.path.exists(temp_path):
+                            os.unlink(temp_path)
                         
             elif isinstance(message, str):
                 # Handle control messages
-                print(f"📨 Received control message (first 100 chars): {message[:100]}...")
+                print(f"📨 Received control message: {message[:100]}...")
                 data = json.loads(message)
                 
                 if data.get('type') == 'set_language':
                     # Change language
                     new_language = data.get('language', 'hindi')
-                    if new_language in MODELS:
+                    if new_language in LANGUAGE_MAP:
                         current_language = new_language
-                        recognizer = KaldiRecognizer(MODELS[current_language], 16000)
-                        recognizer.SetWords(True)
                         print(f"🌍 Language changed to: {current_language}")
                         await websocket.send(json.dumps({
                             'type': 'language_changed',
@@ -104,7 +172,6 @@ async def transcribe_audio(websocket):
                         # Decode base64 audio
                         audio_data = data.get('data', '')
                         if audio_data.startswith('data:'):
-                            # Remove data URL prefix
                             audio_data = audio_data.split(',')[1]
                         
                         audio_bytes = base64.b64decode(audio_data)
@@ -124,21 +191,18 @@ async def transcribe_audio(websocket):
                         }))
                         
                         # Convert to WAV
-                        print("🔄 Converting to WAV...")
-                        wav_path = convert_to_wav(temp_m4a_path)
+                        wav_path = convert_audio_to_wav(temp_m4a_path)
                         
                         if wav_path:
-                            print(f"✅ Converted to WAV: {wav_path}")
-                            
                             # Send processing message
                             await websocket.send(json.dumps({
                                 'type': 'processing',
-                                'message': f'Transcribing in {current_language}...'
+                                'message': f'Transcribing with Faster-Whisper ({current_language})...'
                             }))
                             
-                            # Process with Vosk
-                            print(f"🎯 Processing with Vosk ({current_language})...")
-                            result_text = process_audio_with_vosk(wav_path, MODELS[current_language])
+                            # Transcribe with Whisper
+                            whisper_lang = LANGUAGE_MAP.get(current_language, 'en')
+                            result_text = transcribe_audio_file(wav_path, whisper_lang)
                             
                             if result_text:
                                 print(f"✅ Transcription: {result_text}")
@@ -161,7 +225,7 @@ async def transcribe_audio(websocket):
                             print("❌ Failed to convert audio")
                             await websocket.send(json.dumps({
                                 'type': 'error',
-                                'message': 'Failed to convert audio. Please install ffmpeg.'
+                                'message': 'Failed to convert audio format.'
                             }))
                         
                         # Clean up M4A
@@ -177,28 +241,42 @@ async def transcribe_audio(websocket):
                         }))
                 
                 elif data.get('type') == 'stop':
-                    # Get final result
-                    final = json.loads(recognizer.FinalResult())
-                    print(f"🏁 Final result on stop: {final}")
-                    if final.get('text'):
-                        response = json.dumps({
-                            'type': 'final',
-                            'text': final['text']
-                        })
-                        await websocket.send(response)
-                        print(f"📝 Sent final on stop: {final['text']}")
+                    # Process any remaining audio in buffer
+                    if audio_buffer:
+                        print(f"🏁 Processing final audio buffer...")
+                        combined_audio = b''.join(audio_buffer)
+                        audio_buffer = []
+                        
+                        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_file:
+                            temp_file.write(combined_audio)
+                            temp_path = temp_file.name
+                        
+                        try:
+                            whisper_lang = LANGUAGE_MAP.get(current_language, 'en')
+                            result_text = transcribe_audio_file(temp_path, whisper_lang)
+                            
+                            if result_text:
+                                await websocket.send(json.dumps({
+                                    'type': 'final',
+                                    'text': result_text
+                                }))
+                                print(f"📝 Sent final: {result_text}")
+                        finally:
+                            if os.path.exists(temp_path):
+                                os.unlink(temp_path)
+                    
                     print("⏹️  Recording stopped")
                     
     except websockets.exceptions.ConnectionClosed:
         print(f"❌ Client disconnected from {websocket.remote_address}")
-        print(f"📊 Stats: {message_count} messages, {audio_bytes_received} bytes received")
+        print(f"📊 Stats: {message_count} messages received")
     except Exception as e:
         print(f"❌ Error: {e}")
         import traceback
         traceback.print_exc()
     finally:
         print(f"🔌 Connection closed")
-        print(f"📊 Final stats: {message_count} messages, {audio_bytes_received} bytes received")
+        print(f"📊 Final stats: {message_count} messages")
 
 async def main():
     """Start WebSocket server"""
@@ -212,7 +290,7 @@ async def main():
             max_size=10 * 1024 * 1024  # 10MB max message size
         )
         
-        print("🚀 Transcription server running on ws://0.0.0.0:8003")
+        print("🚀 Faster-Whisper transcription server running on ws://0.0.0.0:8003")
         print("📱 Ready to receive audio streams...")
         print("💡 Waiting for connections... (Press Ctrl+C to stop)")
         

@@ -1,0 +1,83 @@
+# ============================================
+# AURALIS - Complete Backend Requirements
+# ============================================
+
+# Core Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+pydantic==2.5.0
+
+# WebSocket Support
+websockets==12.0
+
+# Database
+sqlalchemy==2.0.23
+
+# Translation
+deep-translator==1.11.4
+
+# HTTP Requests
+requests==2.31.0
+
+# Progress Bars
+tqdm==4.66.1
+
+# YAML Support
+pyyaml==6.0.1
+
+# Type Hints
+typing-extensions==4.8.0
+
+# ============================================
+# AI Transcription (Faster-Whisper)
+# ============================================
+
+# Faster-Whisper AI Transcription
+faster-whisper>=1.0.0
+
+# CTranslate2 (Whisper backend)
+ctranslate2>=4.0.0
+
+# Hugging Face Model Hub
+huggingface-hub>=0.21.0
+
+# Tokenizers for NLP
+tokenizers>=0.13.0
+
+# PyAV for audio/video processing
+av>=16.0.0
+
+# NumPy (required by Whisper)
+numpy>=1.24.0
+
+# File locking
+filelock>=3.12.0
+
+# ============================================
+# Optional Dependencies
+# ============================================
+
+# ONNX Runtime (for Voice Activity Detection)
+# Uncomment if you want VAD support:
+# onnxruntime>=1.16.0
+
+# Vosk (alternative to Whisper)
+# Uncomment if switching to Vosk:
+# vosk>=0.3.45
+
+# ============================================
+# Development Dependencies (optional)
+# ============================================
+
+# Code formatting
+# black==23.11.0
+# isort==5.12.0
+
+# Testing
+# pytest==7.4.3
+# pytest-asyncio==0.21.1
+
+# Linting
+# pylint==3.0.2
+# flake8==6.1.0

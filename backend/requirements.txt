@@ -1,7 +1,26 @@
-fastapi==0.115.0
-uvicorn[standard]==0.32.0
-python-multipart==0.0.12
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-sqlalchemy==2.0.36
-alembic==1.14.0
+# Core Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+pydantic==2.5.0
+
+# WebSocket Support
+websockets==12.0
+
+# Database
+sqlalchemy==2.0.23
+
+# Translation
+deep-translator==1.11.4
+
+# HTTP Requests
+requests==2.31.0
+
+# Progress Bars
+tqdm==4.66.1
+
+# YAML Support
+pyyaml==6.0.1
+
+# Type Hints
+typing-extensions==4.8.0

@@ -522,10 +522,28 @@ export default function App() {
   };
 
   return (
-    <LinearGradient
-      colors={['#201E1F', '#2A2728', '#333031']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#201E1F', '#6457A6', '#201E1F']}
+        locations={[0, 0.5, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <LinearGradient
+        colors={['transparent', '#90D7EF', 'transparent']}
+        locations={[0, 0.5, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={[StyleSheet.absoluteFill, { opacity: 0.6 }]}
+      />
+      <LinearGradient
+        colors={['transparent', '#6457A6', 'transparent']}
+        locations={[0.3, 0.6, 0.9]}
+        start={{ x: 0, y: 1 }}
+        end={{ x: 1, y: 0 }}
+        style={[StyleSheet.absoluteFill, { opacity: 0.4 }]}
+      />
       <StatusBar style="light" />
       
       <ScrollView 
@@ -617,13 +635,13 @@ export default function App() {
                     activeOpacity={0.8}
                   >
                     <LinearGradient
-                      colors={['#6457A6', '#7565B6']}
+                      colors={['#90D7EF', '#A8DAEF']}
                       style={styles.micButtonGradient}
                     >
                       <Ionicons
                         name="mic"
                         size={40}
-                        color="#fff"
+                        color="#201E1F"
                       />
                     </LinearGradient>
                   </TouchableOpacity>
@@ -808,7 +826,7 @@ export default function App() {
           </View>
         </View>
       </ScrollView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -871,9 +889,17 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   mainCard: {
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(32, 30, 31, 0.85)',
     borderRadius: 24,
     padding: 24,
+    borderWidth: 2,
+    borderColor: 'rgba(144, 215, 239, 0.5)',
+    alignItems: 'center',
+    shadowColor: '#B81F00',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 30,
+    elevation: 20,
   },
   instructionText: {
     fontSize: 14,
@@ -934,15 +960,17 @@ const styles = StyleSheet.create({
   microphoneSection: {
     alignItems: 'center',
     marginBottom: 24,
+    width: '100%',
+    marginLeft: 20,
   },
   micButton: {
     width: 96,
     height: 96,
     borderRadius: 48,
     marginBottom: 12,
-    shadowColor: '#6457A6',
+    shadowColor: '#90D7EF',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.6,
     shadowRadius: 12,
     elevation: 8,
   },
@@ -961,6 +989,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#90D7EF',
     fontWeight: '500',
+    marginLeft: -15,
   },
   transcriptionSection: {
     marginBottom: 20,
@@ -971,19 +1000,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   transcriptionBoxContainer: {
-    backgroundColor: 'rgba(32, 30, 31, 0.5)',
+    backgroundColor: 'rgba(32, 30, 31, 0.85)',
     borderRadius: 16,
     padding: 20,
     marginTop: 24,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(144, 215, 239, 0.3)',
+    borderWidth: 2,
+    borderColor: 'rgba(144, 215, 239, 0.5)',
+    width: '100%',
   },
   transcriptionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
+    width: '100%',
   },
   headerButtons: {
     flexDirection: 'row',
@@ -996,13 +1027,13 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: 'rgba(100, 87, 166, 0.15)',
+    backgroundColor: '#90D7EF',
     borderRadius: 8,
   },
   translateIconText: {
     fontSize: 14,
-    color: '#6457A6',
-    fontWeight: '500',
+    color: '#201E1F',
+    fontWeight: '600',
   },
   transcriptionInput: {
     flex: 1,
@@ -1015,6 +1046,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#90D7EF',
     marginBottom: 8,
+    textAlign: 'center',
   },
   transcriptionText: {
     fontSize: 16,
@@ -1035,8 +1067,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(32, 30, 31, 0.6)',
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 215, 239, 0.3)',
+    width: '100%',
   },
   statusItem: {
     flexDirection: 'row',
@@ -1045,28 +1080,31 @@ const styles = StyleSheet.create({
   languageSelector: {
     marginBottom: 20,
     alignItems: 'center',
+    width: '100%',
   },
   languageSelectorLabel: {
     fontSize: 14,
     color: '#90D7EF',
     marginBottom: 10,
     fontWeight: '500',
+    textAlign: 'center',
   },
   languageButtons: {
     flexDirection: 'row',
     gap: 12,
+    justifyContent: 'center',
   },
   languageButton: {
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(32, 30, 31, 0.6)',
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(144, 215, 239, 0.3)',
+    borderWidth: 2,
+    borderColor: 'rgba(144, 215, 239, 0.4)',
   },
   languageButtonActive: {
-    backgroundColor: '#6457A6',
-    borderColor: '#6457A6',
+    backgroundColor: '#90D7EF',
+    borderColor: '#90D7EF',
   },
   languageButtonText: {
     fontSize: 16,
@@ -1074,7 +1112,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   languageButtonTextActive: {
-    color: '#fff',
+    color: '#201E1F',
   },
   translationSection: {
     marginTop: 16,
@@ -1129,14 +1167,14 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(100, 87, 166, 0.15)',
+    backgroundColor: '#90D7EF',
     borderRadius: 8,
     alignSelf: 'flex-start',
   },
   showOriginalText: {
     fontSize: 14,
-    color: '#6457A6',
-    fontWeight: '500',
+    color: '#201E1F',
+    fontWeight: '600',
   },
   modalOverlay: {
     position: 'absolute',
@@ -1150,7 +1188,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   modalContent: {
-    backgroundColor: '#201E1F',
+    backgroundColor: 'rgba(32, 30, 31, 0.95)',
     borderRadius: 20,
     padding: 24,
     width: '80%',
@@ -1160,8 +1198,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 10,
     elevation: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(144, 215, 239, 0.4)',
+    borderWidth: 2,
+    borderColor: 'rgba(144, 215, 239, 0.5)',
   },
   modalTitle: {
     fontSize: 18,
@@ -1171,7 +1209,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalButton: {
-    backgroundColor: '#6457A6',
+    backgroundColor: '#90D7EF',
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,
@@ -1179,8 +1217,8 @@ const styles = StyleSheet.create({
   },
   modalButtonText: {
     fontSize: 16,
-    color: '#fff',
-    fontWeight: '500',
+    color: '#201E1F',
+    fontWeight: '600',
     textAlign: 'center',
   },
   modalCancelButton: {
@@ -1189,8 +1227,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 12,
     marginTop: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(144, 215, 239, 0.3)',
+    borderWidth: 2,
+    borderColor: 'rgba(144, 215, 239, 0.4)',
   },
   modalCancelText: {
     fontSize: 16,

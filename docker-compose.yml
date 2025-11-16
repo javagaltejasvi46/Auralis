@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # Backend HTTP API Server
+  backend-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: auralis-backend-api
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./backend:/app
+      - whisper-models:/root/.cache/huggingface
+      - uploads:/app/uploads
+      - database:/app
+    environment:
+      - PYTHON_ENV=production
+      - API_PORT=8002
+    command: python main.py
+    restart: unless-stopped
+    networks:
+      - auralis-network
+
+  # Backend WebSocket Transcription Server
+  backend-ws:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: auralis-backend-ws
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./backend:/app
+      - whisper-models:/root/.cache/huggingface
+      - uploads:/app/uploads
+    environment:
+      - PYTHON_ENV=production
+      - WS_PORT=8003
+    command: python transcription_server.py
+    restart: unless-stopped
+    networks:
+      - auralis-network
+    depends_on:
+      - backend-api
+
+  # Frontend Expo Development Server
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: auralis-frontend
+    ports:
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+      - REACT_NATIVE_PACKAGER_HOSTNAME=localhost
+    stdin_open: true
+    tty: true
+    networks:
+      - auralis-network
+    depends_on:
+      - backend-api
+      - backend-ws
+
+volumes:
+  whisper-models:
+    driver: local
+  uploads:
+    driver: local
+  database:
+    driver: local
+
+networks:
+  auralis-network:
+    driver: bridge

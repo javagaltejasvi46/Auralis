@@ -1,0 +1,26 @@
+# Faster-Whisper AI Transcription
+faster-whisper>=1.0.0
+
+# CTranslate2 (Whisper backend)
+ctranslate2>=4.0.0
+
+# Hugging Face Model Hub
+huggingface-hub>=0.21.0
+
+# Tokenizers for NLP
+tokenizers>=0.13.0
+
+# PyAV for audio/video processing
+av>=16.0.0
+
+# NumPy (required by Whisper)
+numpy>=1.24.0
+
+# File locking
+filelock>=3.12.0
+
+# ONNX Runtime (optional, for VAD)
+# onnxruntime>=1.16.0
+
+# Alternative: Vosk (if switching back)
+# vosk>=0.3.45

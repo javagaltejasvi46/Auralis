@@ -1,16 +1,14 @@
 @echo off
-echo Starting Transcription Server...
+echo Starting Faster-Whisper Transcription Server...
 echo.
-echo Checking FFmpeg...
-ffmpeg -version >nul 2>&1
+echo Checking Faster-Whisper installation...
+python -c "from faster_whisper import WhisperModel" 2>nul
 if %errorlevel% neq 0 (
-    echo ERROR: FFmpeg not found!
-    echo Please install: winget install Gyan.FFmpeg.Essentials
-    echo Then restart this terminal.
+    echo ERROR: Faster-Whisper not installed!
+    echo Please run: .\install_whisper.bat
     pause
     exit /b 1
 )
-echo FFmpeg OK!
 echo.
-echo Starting WebSocket server on port 8003...
+echo Starting Faster-Whisper WebSocket server on port 8003...
 python transcription_server.py
