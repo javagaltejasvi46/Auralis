@@ -1,7 +1,3 @@
-"""
-AURALIS Backend API - Main Application
-Medical Voice Transcription with Authentication & Patient Management
-"""
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -16,23 +12,16 @@ from models import AudioRecord, get_db, create_tables
 from config import settings
 from deep_translator import GoogleTranslator
 
-# Import routers
-from routers import auth_router, patient_router, session_router
-
 app = FastAPI(
-    title="AURALIS API",
-    version="2.0.0",
-    description="Medical Voice Transcription with Authentication & Patient Management"
+    title=settings.API_TITLE,
+    version=settings.API_VERSION,
+    description=settings.API_DESCRIPTION
 )
 
 # Create database tables on startup
-@app.on_event("startup")
-async def startup_event():
-    create_tables()
-    print("✅ Database tables created")
-    print("🚀 AURALIS API Server started")
+create_tables()
 
-# CORS middleware
+# CORS middleware for React Native
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -41,37 +30,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(auth_router.router)
-app.include_router(patient_router.router)
-app.include_router(session_router.router)
-
 @app.get("/")
 async def root():
-    return {
-        "message": "AURALIS API is running",
-        "version": "2.0.0",
-        "features": [
-            "Authentication",
-            "Patient Management",
-            "Session Management",
-            "Audio Transcription",
-            "Translation"
-        ]
-    }
+    return {"message": "Audio Recording API is running"}
 
-@app.get("/health")
-async def health_check():
-    return {
-        "status": "healthy",
-        "version": "2.0.0",
-        "database": "connected"
-    }
-
-# Legacy audio upload endpoint (for backward compatibility)
 @app.post("/upload-audio")
 async def upload_audio(file: UploadFile = File(...), db: Session = Depends(get_db)):
-    """Upload and store audio file (legacy endpoint)"""
+    """Upload and store audio file"""
     try:
         # Validate file type
         if file.content_type not in settings.ALLOWED_AUDIO_TYPES:
@@ -114,13 +79,13 @@ async def upload_audio(file: UploadFile = File(...), db: Session = Depends(get_d
 
 @app.get("/recordings")
 async def get_recordings(db: Session = Depends(get_db)):
-    """Get list of all recordings (legacy endpoint)"""
+    """Get list of all recordings"""
     recordings = db.query(AudioRecord).order_by(AudioRecord.upload_time.desc()).all()
     return {"recordings": [record.to_dict() for record in recordings]}
 
 @app.delete("/recordings/{file_id}")
 async def delete_recording(file_id: str, db: Session = Depends(get_db)):
-    """Delete a recording (legacy endpoint)"""
+    """Delete a recording"""
     try:
         record = db.query(AudioRecord).filter(AudioRecord.id == file_id).first()
         if not record:
