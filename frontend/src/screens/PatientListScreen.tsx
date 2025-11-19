@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   createButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.paleAzure,
+    backgroundColor: COLORS.buttonBackground,
     paddingHorizontal: 30,
     paddingVertical: 15,
     borderRadius: 25,
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   createButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.raisinBlack,
+    color: COLORS.buttonText,
     marginLeft: 8,
   },
   listContent: {
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: COLORS.paleAzure,
+    backgroundColor: COLORS.buttonBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,

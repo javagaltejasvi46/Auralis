@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,28 +9,31 @@ import {
   Animated,
   TextInput,
   ActivityIndicator,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
-import * as Haptics from 'expo-haptics';
-import { COLORS, WS_BASE_URL } from '../config';
-import { sessionAPI } from '../services/api';
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { Audio } from "expo-av";
+import * as Haptics from "expo-haptics";
+import { COLORS, WS_BASE_URL } from "../config";
+import { sessionAPI } from "../services/api";
 
 export default function SessionRecordingScreen({ route, navigation }: any) {
   const { sessionId, patientName } = route.params;
-  
+
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [transcription, setTranscription] = useState('');
-  const [partialTranscript, setPartialTranscript] = useState('');
-  const [wsStatus, setWsStatus] = useState<string>('Not connected');
-  const [language, setLanguage] = useState<'hindi' | 'english'>('hindi');
+  const [transcription, setTranscription] = useState("");
+  const [partialTranscript, setPartialTranscript] = useState("");
+  const [wsStatus, setWsStatus] = useState<string>("Not connected");
+  const [language, setLanguage] = useState<"hindi" | "english">("hindi");
   const [isSaving, setIsSaving] = useState(false);
-  
+  const [isTranscribing, setIsTranscribing] = useState(false);
+
   const wsRef = useRef<WebSocket | null>(null);
   const waveAnimations = useRef(
-    Array(50).fill(0).map(() => new Animated.Value(Math.random() * 0.3 + 0.1))
+    Array(50)
+      .fill(0)
+      .map(() => new Animated.Value(Math.random() * 0.3 + 0.1))
   ).current;
   const recordTransition = useRef(new Animated.Value(0)).current;
   const buttonScale = useRef(new Animated.Value(1)).current;
@@ -44,48 +47,56 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
   }, []);
 
   const connectWebSocket = () => {
-    console.log('🔌 Connecting WebSocket for transcription...');
+    console.log("🔌 Connecting WebSocket for transcription...");
     const ws = new WebSocket(WS_BASE_URL);
-    
+
     ws.onopen = () => {
-      console.log('✅ WebSocket connected');
-      setWsStatus('Connected');
+      console.log("✅ WebSocket connected");
+      setWsStatus("Connected");
       wsRef.current = ws;
-      
-      ws.send(JSON.stringify({
-        type: 'set_language',
-        language: language,
-      }));
+
+      ws.send(
+        JSON.stringify({
+          type: "set_language",
+          language: language,
+        })
+      );
     };
-    
+
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        
-        if (data.type === 'partial') {
+
+        if (data.type === "processing") {
+          setIsTranscribing(true);
+        } else if (data.type === "partial") {
           setPartialTranscript(data.text);
-        } else if (data.type === 'final') {
-          setTranscription(prev => prev + (prev ? ' ' : '') + data.text);
-          setPartialTranscript('');
-        } else if (data.type === 'error') {
-          Alert.alert('Transcription Error', data.message);
+          setIsTranscribing(true);
+        } else if (data.type === "final") {
+          setTranscription((prev) => prev + (prev ? " " : "") + data.text);
+          setPartialTranscript("");
+          setIsTranscribing(false);
+        } else if (data.type === "error") {
+          setIsTranscribing(false);
+          Alert.alert("Transcription Error", data.message);
         }
       } catch (err) {
-        console.log('❌ Error parsing message:', err);
+        console.log("❌ Error parsing message:", err);
+        setIsTranscribing(false);
       }
     };
-    
+
     ws.onerror = (error) => {
-      console.log('❌ WebSocket error:', error);
-      setWsStatus('Error');
+      console.log("❌ WebSocket error:", error);
+      setWsStatus("Error");
     };
-    
+
     ws.onclose = () => {
-      console.log('🔌 WebSocket closed');
-      setWsStatus('Disconnected');
+      console.log("🔌 WebSocket closed");
+      setWsStatus("Disconnected");
       wsRef.current = null;
     };
-    
+
     return ws;
   };
 
@@ -109,7 +120,7 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
   };
 
   const stopWaveformAnimation = () => {
-    waveAnimations.forEach(anim => {
+    waveAnimations.forEach((anim) => {
       anim.stopAnimation();
       Animated.timing(anim, {
         toValue: Math.random() * 0.3 + 0.1,
@@ -122,9 +133,12 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
   async function startRecording() {
     try {
       const permission = await Audio.requestPermissionsAsync();
-      
-      if (permission.status !== 'granted') {
-        Alert.alert('Permission required', 'Please grant microphone permission');
+
+      if (permission.status !== "granted") {
+        Alert.alert(
+          "Permission required",
+          "Please grant microphone permission"
+        );
         return;
       }
 
@@ -138,10 +152,10 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
       const { recording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
-      
+
       setRecording(recording);
       setIsRecording(true);
-      
+
       Animated.parallel([
         Animated.spring(recordTransition, {
           toValue: 1,
@@ -163,12 +177,12 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
           }),
         ]),
       ]).start();
-      
+
       startWaveformAnimation();
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } catch (err) {
-      console.error('❌ Failed to start recording:', err);
-      Alert.alert('Error', 'Failed to start recording');
+      console.error("❌ Failed to start recording:", err);
+      Alert.alert("Error", "Failed to start recording");
     }
   }
 
@@ -176,7 +190,7 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
     if (!recording) return;
 
     setIsRecording(false);
-    
+
     Animated.parallel([
       Animated.spring(recordTransition, {
         toValue: 0,
@@ -198,46 +212,49 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
         }),
       ]),
     ]).start();
-    
+
     stopWaveformAnimation();
-    
+
     await recording.stopAndUnloadAsync();
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
     });
-    
+
     const uri = recording.getURI();
     const status = await recording.getStatusAsync();
-    
+
     setRecording(null);
-    
+
     if (uri) {
       // Send audio to WebSocket for transcription
       const response = await fetch(uri);
       const blob = await response.blob();
-      
+
       const reader = new FileReader();
       reader.readAsDataURL(blob);
-      
+
       reader.onloadend = () => {
         const base64data = reader.result as string;
-        
+
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify({
-            type: 'audio_file',
-            data: base64data,
-            format: 'm4a'
-          }));
+          setIsTranscribing(true);
+          wsRef.current.send(
+            JSON.stringify({
+              type: "audio_file",
+              data: base64data,
+              format: "m4a",
+            })
+          );
         }
       };
-      
+
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
   }
 
   const handleSaveSession = async () => {
     if (!transcription) {
-      Alert.alert('No Transcription', 'Please record audio first');
+      Alert.alert("No Transcription", "Please record audio first");
       return;
     }
 
@@ -249,11 +266,17 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
         is_completed: true,
       });
 
-      Alert.alert('Success', 'Session saved successfully', [
-        { text: 'OK', onPress: () => navigation.navigate('PatientProfile', { patientId: route.params.patientId }) }
+      Alert.alert("Success", "Session saved successfully", [
+        {
+          text: "OK",
+          onPress: () =>
+            navigation.navigate("PatientProfile", {
+              patientId: route.params.patientId,
+            }),
+        },
       ]);
     } catch (error: any) {
-      Alert.alert('Error', 'Failed to save session');
+      Alert.alert("Error", "Failed to save session");
     } finally {
       setIsSaving(false);
     }
@@ -268,7 +291,10 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
       style={styles.container}
     >
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={24} color={COLORS.paleAzure} />
         </TouchableOpacity>
         <View style={styles.headerInfo}>
@@ -278,26 +304,45 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Language Selector */}
         <View style={styles.languageSelector}>
           <Text style={styles.languageSelectorLabel}>Select Language:</Text>
           <View style={styles.languageButtons}>
             <TouchableOpacity
-              style={[styles.languageButton, language === 'hindi' && styles.languageButtonActive]}
-              onPress={() => setLanguage('hindi')}
+              style={[
+                styles.languageButton,
+                language === "hindi" && styles.languageButtonActive,
+              ]}
+              onPress={() => setLanguage("hindi")}
               disabled={isRecording}
             >
-              <Text style={[styles.languageButtonText, language === 'hindi' && styles.languageButtonTextActive]}>
+              <Text
+                style={[
+                  styles.languageButtonText,
+                  language === "hindi" && styles.languageButtonTextActive,
+                ]}
+              >
                 हिंदी
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.languageButton, language === 'english' && styles.languageButtonActive]}
-              onPress={() => setLanguage('english')}
+              style={[
+                styles.languageButton,
+                language === "english" && styles.languageButtonActive,
+              ]}
+              onPress={() => setLanguage("english")}
               disabled={isRecording}
             >
-              <Text style={[styles.languageButtonText, language === 'english' && styles.languageButtonTextActive]}>
+              <Text
+                style={[
+                  styles.languageButtonText,
+                  language === "english" && styles.languageButtonTextActive,
+                ]}
+              >
                 English
               </Text>
             </TouchableOpacity>
@@ -316,12 +361,15 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
                   }),
                 }}
               >
-                <TouchableOpacity style={styles.micButton} onPress={startRecording}>
+                <TouchableOpacity
+                  style={styles.micButton}
+                  onPress={startRecording}
+                >
                   <LinearGradient
-                    colors={[COLORS.paleAzure, '#A8DAEF']}
+                    colors={[COLORS.buttonBackground, COLORS.coolSteel]}
                     style={styles.micButtonGradient}
                   >
-                    <Ionicons name="mic" size={40} color={COLORS.raisinBlack} />
+                    <Ionicons name="mic" size={40} color={COLORS.parchment} />
                   </LinearGradient>
                 </TouchableOpacity>
                 <Text style={styles.micButtonLabel}>Start Recording</Text>
@@ -338,7 +386,8 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
                 <View style={styles.waveformContainer}>
                   <View style={styles.waveform}>
                     {waveAnimations.map((anim, index) => {
-                      const angle = (index / waveAnimations.length) * 2 * Math.PI;
+                      const angle =
+                        (index / waveAnimations.length) * 2 * Math.PI;
                       const radius = 60;
                       return (
                         <Animated.View
@@ -353,9 +402,11 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
                               transform: [
                                 { translateX: Math.cos(angle) * radius },
                                 { translateY: Math.sin(angle) * radius },
-                                { rotate: `${(angle * 180) / Math.PI + 90}deg` },
+                                {
+                                  rotate: `${(angle * 180) / Math.PI + 90}deg`,
+                                },
                               ],
-                            }
+                            },
                           ]}
                         />
                       );
@@ -365,8 +416,11 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
                     <Ionicons name="mic" size={32} color={COLORS.saffron} />
                   </View>
                 </View>
-                
-                <TouchableOpacity style={styles.stopButton} onPress={stopRecording}>
+
+                <TouchableOpacity
+                  style={styles.stopButton}
+                  onPress={stopRecording}
+                >
                   <Text style={styles.stopButtonText}>Stop Recording</Text>
                 </TouchableOpacity>
               </Animated.View>
@@ -379,22 +433,27 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
           <View style={styles.transcriptionBox}>
             <View style={styles.transcriptionHeader}>
               <Text style={styles.transcriptionLabel}>Transcription</Text>
-              <TouchableOpacity onPress={() => {
-                setTranscription('');
-                setPartialTranscript('');
-              }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setTranscription("");
+                  setPartialTranscript("");
+                }}
+              >
                 <Text style={styles.clearButton}>Clear</Text>
               </TouchableOpacity>
             </View>
-            
+
             <TextInput
               style={styles.transcriptionText}
-              value={transcription + (partialTranscript ? ' ' + partialTranscript : '')}
+              value={
+                transcription +
+                (partialTranscript ? " " + partialTranscript : "")
+              }
               onChangeText={setTranscription}
               multiline
               textAlignVertical="top"
             />
-            
+
             {partialTranscript && (
               <Text style={styles.partialLabel}>⏳ Processing...</Text>
             )}
@@ -412,7 +471,11 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
               <ActivityIndicator color={COLORS.raisinBlack} />
             ) : (
               <>
-                <Ionicons name="checkmark-circle" size={24} color={COLORS.raisinBlack} />
+                <Ionicons
+                  name="checkmark-circle"
+                  size={24}
+                  color={COLORS.raisinBlack}
+                />
                 <Text style={styles.saveButtonText}>Save Session</Text>
               </>
             )}
@@ -421,16 +484,35 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
 
         {/* Status */}
         <View style={styles.statusBar}>
-          <View style={[
-            styles.statusDot,
-            { backgroundColor: 
-              wsStatus === 'Connected' ? COLORS.success : 
-              wsStatus === 'Disconnected' ? '#94a3b8' : COLORS.error 
-            }
-          ]} />
+          <View
+            style={[
+              styles.statusDot,
+              {
+                backgroundColor:
+                  wsStatus === "Connected"
+                    ? COLORS.success
+                    : wsStatus === "Disconnected"
+                    ? "#94a3b8"
+                    : COLORS.error,
+              },
+            ]}
+          />
           <Text style={styles.statusText}>WebSocket: {wsStatus}</Text>
         </View>
       </ScrollView>
+
+      {/* Transcription Loading Overlay */}
+      {isTranscribing && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.buttonBackground} />
+            <Text style={styles.loadingText}>Transcribing audio...</Text>
+            <Text style={styles.loadingSubtext}>
+              Processing with Faster-Whisper AI
+            </Text>
+          </View>
+        </View>
+      )}
     </LinearGradient>
   );
 }
@@ -440,9 +522,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingTop: 60,
     paddingHorizontal: 20,
     marginBottom: 20,
@@ -456,12 +538,12 @@ const styles = StyleSheet.create({
   },
   headerInfo: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.paleAzure,
+    fontWeight: "600",
+    color: COLORS.textPrimary,
   },
   headerSubtitle: {
     fontSize: 14,
@@ -474,16 +556,16 @@ const styles = StyleSheet.create({
   },
   languageSelector: {
     marginBottom: 24,
-    alignItems: 'center',
+    alignItems: "center",
   },
   languageSelectorLabel: {
     fontSize: 14,
     color: COLORS.textPrimary,
     marginBottom: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   languageButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   languageButton: {
@@ -495,19 +577,19 @@ const styles = StyleSheet.create({
     borderColor: COLORS.borderColor,
   },
   languageButtonActive: {
-    backgroundColor: COLORS.saffron,
-    borderColor: COLORS.saffron,
+    backgroundColor: COLORS.buttonBackground,
+    borderColor: COLORS.buttonBackground,
   },
   languageButtonText: {
     fontSize: 16,
-    color: COLORS.textPrimary,
-    fontWeight: '600',
+    color: COLORS.textOnDarkTeal,
+    fontWeight: "600",
   },
   languageButtonTextActive: {
-    color: COLORS.raisinBlack,
+    color: COLORS.buttonText,
   },
   recordingSection: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 30,
   },
   micButton: {
@@ -522,53 +604,53 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   micButtonGradient: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     borderRadius: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   micButtonLabel: {
     fontSize: 16,
-    color: COLORS.paleAzure,
-    fontWeight: '500',
+    color: COLORS.textPrimary,
+    fontWeight: "500",
   },
   waveformContainer: {
     width: 200,
     height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 20,
   },
   waveform: {
     width: 200,
     height: 200,
     borderRadius: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   waveBar: {
-    position: 'absolute',
+    position: "absolute",
     width: 4,
-    backgroundColor: COLORS.saffron,
+    backgroundColor: COLORS.darkTeal,
     borderRadius: 2,
     opacity: 0.9,
   },
   centerMicIcon: {
-    position: 'absolute',
+    position: "absolute",
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: 'rgba(32, 30, 31, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(17, 56, 69, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   stopButton: {
     paddingHorizontal: 40,
     paddingVertical: 14,
-    backgroundColor: COLORS.engineeringOrange,
+    backgroundColor: COLORS.error,
     borderRadius: 25,
-    shadowColor: COLORS.engineeringOrange,
+    shadowColor: COLORS.error,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
@@ -576,8 +658,8 @@ const styles = StyleSheet.create({
   },
   stopButtonText: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
     letterSpacing: 1,
   },
   transcriptionBox: {
@@ -589,38 +671,38 @@ const styles = StyleSheet.create({
     borderColor: COLORS.borderColor,
   },
   transcriptionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   transcriptionLabel: {
     fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.paleAzure,
+    fontWeight: "600",
+    color: COLORS.textOnDarkTeal,
   },
   clearButton: {
     fontSize: 14,
-    color: COLORS.engineeringOrange,
-    fontWeight: '500',
+    color: COLORS.error,
+    fontWeight: "500",
   },
   transcriptionText: {
     fontSize: 16,
-    color: COLORS.paleAzure,
+    color: COLORS.textOnDarkTeal,
     minHeight: 100,
     maxHeight: 200,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   partialLabel: {
     fontSize: 12,
-    color: COLORS.saffron,
-    fontStyle: 'italic',
+    color: COLORS.coolSteel,
+    fontStyle: "italic",
     marginTop: 8,
   },
   saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: COLORS.success,
     paddingVertical: 16,
     borderRadius: 16,
@@ -632,13 +714,13 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.raisinBlack,
+    fontWeight: "600",
+    color: COLORS.textOnDarkTeal,
   },
   statusBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 8,
     paddingHorizontal: 16,
     backgroundColor: COLORS.cardBackground,
@@ -655,6 +737,38 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     color: COLORS.textPrimary,
-    fontWeight: '500',
+    fontWeight: "500",
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  loadingContainer: {
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 20,
+    padding: 40,
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: COLORS.borderColor,
+    minWidth: 280,
+  },
+  loadingText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: COLORS.textOnDarkTeal,
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: "center",
   },
 });

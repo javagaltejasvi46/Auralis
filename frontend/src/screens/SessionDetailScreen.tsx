@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.paleAzure,
+    color: COLORS.textPrimary,
   },
   headerSubtitle: {
     fontSize: 14,
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 14,
-    color: COLORS.textPrimary,
+    color: COLORS.textOnDarkTeal,
   },
   section: {
     marginBottom: 24,
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.paleAzure,
+    color: COLORS.textPrimary,
     marginBottom: 12,
   },
   translateButtons: {
@@ -324,13 +324,13 @@ const styles = StyleSheet.create({
   translateButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: COLORS.saffron,
+    backgroundColor: COLORS.buttonBackground,
     borderRadius: 8,
   },
   translateButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.raisinBlack,
+    color: COLORS.buttonText,
   },
   textInput: {
     backgroundColor: COLORS.cardBackground,
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     fontSize: 16,
-    color: COLORS.textPrimary,
+    color: COLORS.textOnDarkTeal,
     minHeight: 150,
   },
   saveButton: {
@@ -357,6 +357,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.raisinBlack,
+    color: COLORS.textOnDarkTeal,
   },
 });

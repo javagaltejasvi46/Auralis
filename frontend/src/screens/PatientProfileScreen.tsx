@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: COLORS.paleAzure,
+    backgroundColor: COLORS.buttonBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   patientName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: COLORS.paleAzure,
+    color: COLORS.textOnDarkTeal,
     marginBottom: 4,
   },
   patientId: {
@@ -357,13 +357,13 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 14,
-    color: COLORS.textPrimary,
+    color: COLORS.textOnDarkTeal,
   },
   startSessionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.saffron,
+    backgroundColor: COLORS.buttonBackground,
     paddingVertical: 16,
     borderRadius: 16,
     marginBottom: 24,
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   startSessionText: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.raisinBlack,
+    color: COLORS.buttonText,
   },
   section: {
     marginBottom: 24,
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.paleAzure,
+    color: COLORS.textPrimary,
     marginBottom: 12,
   },
   emptyState: {
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   sessionNumber: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.paleAzure,
+    color: COLORS.textOnDarkTeal,
   },
   sessionActions: {
     flexDirection: 'row',
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   },
   viewDetailText: {
     fontSize: 12,
-    color: COLORS.paleAzure,
+    color: COLORS.coolSteel,
     fontStyle: 'italic',
   },
   sessionDetails: {
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.paleAzure,
+    backgroundColor: COLORS.buttonBackground,
     paddingVertical: 14,
     borderRadius: 12,
     gap: 8,

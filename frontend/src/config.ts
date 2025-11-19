@@ -3,8 +3,8 @@
  */
 
 // Update this with your machine's IP address
-export const API_BASE_URL = 'http://192.168.0.102:8002';
-export const WS_BASE_URL = 'ws://192.168.0.102:8003';
+export const API_BASE_URL = 'http://172.0.30.99:8002';
+export const WS_BASE_URL = 'ws://172.0.30.99:8003';
 
 export const API_ENDPOINTS = {
   // Auth
@@ -24,21 +24,29 @@ export const API_ENDPOINTS = {
 };
 
 export const COLORS = {
-  // Main palette
-  raisinBlack: '#201E1F',
-  paleAzure: '#90D7EF',
-  ultraviolet: '#6457A6',
-  saffron: '#E3B505',
-  engineeringOrange: '#B81F00',
+  // Main palette - New Color Scheme
+  parchment: '#F2EFEB',
+  darkTeal: '#113845',
+  coolSteel: '#85A3B3',
   
-  // Gradients
-  backgroundGradient: ['#201E1F', '#6457A6', '#90D7EF', '#201E1F'],
+  // Legacy colors (replaced)
+  raisinBlack: '#F2EFEB',  // Now Parchment
+  paleAzure: '#85A3B3',    // Now Cool Steel
+  ultraviolet: '#113845',  // Now Dark Teal
+  saffron: '#113845',      // Now Dark Teal
+  engineeringOrange: '#113845',  // Now Dark Teal
+  
+  // Gradients - Solid Parchment background
+  backgroundGradient: ['#F2EFEB', '#F2EFEB', '#F2EFEB', '#F2EFEB'],
   
   // UI
-  cardBackground: 'rgba(32, 30, 31, 0.85)',
-  borderColor: 'rgba(144, 215, 239, 0.5)',
-  textPrimary: '#90D7EF',
-  textSecondary: 'rgba(144, 215, 239, 0.7)',
+  cardBackground: 'rgba(17, 56, 69, 0.95)',  // Dark Teal sections
+  borderColor: 'rgba(133, 163, 179, 0.5)',   // Cool Steel border
+  textPrimary: '#85A3B3',      // Cool Steel text (on parchment background)
+  textSecondary: 'rgba(133, 163, 179, 0.7)',    // Cool Steel text lighter
+  textOnDarkTeal: '#FFFFFF',   // White text on dark teal background
+  buttonBackground: '#85A3B3', // Cool Steel buttons
+  buttonText: '#FFFFFF',       // White text on buttons
   
   // Status
   success: '#4ade80',

@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -90,8 +91,13 @@ export default function RegisterScreen({ navigation }: any) {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color={COLORS.paleAzure} />
+              <Ionicons name="arrow-back" size={24} color={COLORS.textPrimary} />
             </TouchableOpacity>
+            <Image
+              source={require('../../assets/logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
             <Text style={styles.title}>Create Account</Text>
             <Text style={styles.subtitle}>Register as a Therapist</Text>
           </View>
@@ -101,7 +107,7 @@ export default function RegisterScreen({ navigation }: any) {
               icon="mail-outline"
               placeholder="Email *"
               value={formData.email}
-              onChangeText={(text) => updateField('email', text)}
+              onChangeText={(text: string) => updateField('email', text)}
               keyboardType="email-address"
               autoCapitalize="none"
             />
@@ -110,7 +116,7 @@ export default function RegisterScreen({ navigation }: any) {
               icon="person-outline"
               placeholder="Username *"
               value={formData.username}
-              onChangeText={(text) => updateField('username', text)}
+              onChangeText={(text: string) => updateField('username', text)}
               autoCapitalize="none"
             />
 
@@ -118,7 +124,7 @@ export default function RegisterScreen({ navigation }: any) {
               icon="lock-closed-outline"
               placeholder="Password *"
               value={formData.password}
-              onChangeText={(text) => updateField('password', text)}
+              onChangeText={(text: string) => updateField('password', text)}
               secureTextEntry={!showPassword}
               rightIcon={
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
@@ -135,7 +141,7 @@ export default function RegisterScreen({ navigation }: any) {
               icon="lock-closed-outline"
               placeholder="Confirm Password *"
               value={formData.confirmPassword}
-              onChangeText={(text) => updateField('confirmPassword', text)}
+              onChangeText={(text: string) => updateField('confirmPassword', text)}
               secureTextEntry={!showPassword}
             />
 
@@ -143,28 +149,28 @@ export default function RegisterScreen({ navigation }: any) {
               icon="person-circle-outline"
               placeholder="Full Name *"
               value={formData.full_name}
-              onChangeText={(text) => updateField('full_name', text)}
+              onChangeText={(text: string) => updateField('full_name', text)}
             />
 
             <InputField
               icon="card-outline"
               placeholder="License Number *"
               value={formData.license_number}
-              onChangeText={(text) => updateField('license_number', text)}
+              onChangeText={(text: string) => updateField('license_number', text)}
             />
 
             <InputField
               icon="medical-outline"
               placeholder="Specialization"
               value={formData.specialization}
-              onChangeText={(text) => updateField('specialization', text)}
+              onChangeText={(text: string) => updateField('specialization', text)}
             />
 
             <InputField
               icon="call-outline"
               placeholder="Phone"
               value={formData.phone}
-              onChangeText={(text) => updateField('phone', text)}
+              onChangeText={(text: string) => updateField('phone', text)}
               keyboardType="phone-pad"
             />
 
@@ -227,10 +233,15 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
   },
+  logoImage: {
+    width: 80,
+    height: 80,
+    marginBottom: 16,
+  },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: COLORS.paleAzure,
+    color: COLORS.textPrimary,
     marginBottom: 8,
   },
   subtitle: {
@@ -259,24 +270,24 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: COLORS.textPrimary,
+    color: COLORS.textOnDarkTeal,
     fontSize: 16,
     paddingVertical: 15,
   },
   registerButton: {
-    backgroundColor: COLORS.paleAzure,
+    backgroundColor: COLORS.buttonBackground,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: COLORS.paleAzure,
+    shadowColor: COLORS.buttonBackground,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 6,
   },
   registerButtonText: {
-    color: COLORS.raisinBlack,
+    color: COLORS.buttonText,
     fontSize: 18,
     fontWeight: '600',
     letterSpacing: 1,

@@ -7,6 +7,9 @@ import tempfile
 from faster_whisper import WhisperModel
 import subprocess
 
+# Fix OpenMP library conflict
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
+
 # Load Faster-Whisper medium model (better for Hindi Devanagari)
 print("🔄 Loading Faster-Whisper medium model...")
 model = WhisperModel("medium", device="cpu", compute_type="int8")

@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     color: COLORS.paleAzure,
   },
   createButton: {
-    backgroundColor: COLORS.paleAzure,
+    backgroundColor: COLORS.buttonBackground,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -284,6 +284,6 @@ const styles = StyleSheet.create({
   createButtonText: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.raisinBlack,
+    color: COLORS.buttonText,
   },
 });

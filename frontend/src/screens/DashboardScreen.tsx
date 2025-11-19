@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: COLORS.paleAzure,
+    backgroundColor: COLORS.buttonBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,

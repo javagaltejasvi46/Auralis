@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -53,9 +54,11 @@ export default function LoginScreen({ navigation }: any) {
         <View style={styles.content}>
           {/* Logo */}
           <View style={styles.logoContainer}>
-            <View style={styles.logo}>
-              <Ionicons name="medical" size={50} color={COLORS.paleAzure} />
-            </View>
+            <Image
+              source={require('../../assets/logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
             <Text style={styles.title}>AURALIS</Text>
             <Text style={styles.subtitle}>Hear . Understand . Heal</Text>
           </View>
@@ -136,6 +139,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 50,
   },
+  logoImage: {
+    width: 120,
+    height: 120,
+    marginBottom: 20,
+  },
   logo: {
     width: 100,
     height: 100,
@@ -150,7 +158,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 42,
     fontWeight: 'bold',
-    color: COLORS.paleAzure,
+    color: COLORS.textPrimary,
     letterSpacing: 8,
     marginBottom: 10,
   },
@@ -181,24 +189,24 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: COLORS.textPrimary,
+    color: COLORS.textOnDarkTeal,
     fontSize: 16,
     paddingVertical: 15,
   },
   loginButton: {
-    backgroundColor: COLORS.paleAzure,
+    backgroundColor: COLORS.buttonBackground,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: COLORS.paleAzure,
+    shadowColor: COLORS.buttonBackground,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 6,
   },
   loginButtonText: {
-    color: COLORS.raisinBlack,
+    color: COLORS.buttonText,
     fontSize: 18,
     fontWeight: '600',
     letterSpacing: 1,
@@ -213,7 +221,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   registerLink: {
-    color: COLORS.paleAzure,
+    color: COLORS.textPrimary,
     fontSize: 14,
     fontWeight: '600',
   },
