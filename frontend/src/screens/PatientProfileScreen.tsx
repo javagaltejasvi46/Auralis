@@ -216,7 +216,7 @@ export default function PatientProfileScreen({ route, navigation }: any) {
                       }}
                       style={styles.deleteButton}
                     >
-                      <Ionicons name="trash-outline" size={18} color={COLORS.engineeringOrange} />
+                      <Ionicons name="trash-outline" size={18} color={COLORS.coolSteel} />
                     </TouchableOpacity>
                   </View>
                 </View>

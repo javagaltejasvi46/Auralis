@@ -25,7 +25,6 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
   const [transcription, setTranscription] = useState("");
   const [partialTranscript, setPartialTranscript] = useState("");
   const [wsStatus, setWsStatus] = useState<string>("Not connected");
-  const [language, setLanguage] = useState<"hindi" | "english">("hindi");
   const [isSaving, setIsSaving] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
 
@@ -51,16 +50,9 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
     const ws = new WebSocket(WS_BASE_URL);
 
     ws.onopen = () => {
-      console.log("✅ WebSocket connected");
+      console.log("✅ WebSocket connected - Multilingual mode");
       setWsStatus("Connected");
       wsRef.current = ws;
-
-      ws.send(
-        JSON.stringify({
-          type: "set_language",
-          language: language,
-        })
-      );
     };
 
     ws.onmessage = (event) => {
@@ -262,17 +254,14 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
     try {
       await sessionAPI.update(sessionId, {
         original_transcription: transcription,
-        language: language,
+        language: "multilingual",
         is_completed: true,
       });
 
       Alert.alert("Success", "Session saved successfully", [
         {
           text: "OK",
-          onPress: () =>
-            navigation.navigate("PatientProfile", {
-              patientId: route.params.patientId,
-            }),
+          onPress: () => navigation.navigate("PatientList"),
         },
       ]);
     } catch (error: any) {
@@ -308,45 +297,12 @@ export default function SessionRecordingScreen({ route, navigation }: any) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Language Selector */}
-        <View style={styles.languageSelector}>
-          <Text style={styles.languageSelectorLabel}>Select Language:</Text>
-          <View style={styles.languageButtons}>
-            <TouchableOpacity
-              style={[
-                styles.languageButton,
-                language === "hindi" && styles.languageButtonActive,
-              ]}
-              onPress={() => setLanguage("hindi")}
-              disabled={isRecording}
-            >
-              <Text
-                style={[
-                  styles.languageButtonText,
-                  language === "hindi" && styles.languageButtonTextActive,
-                ]}
-              >
-                हिंदी
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.languageButton,
-                language === "english" && styles.languageButtonActive,
-              ]}
-              onPress={() => setLanguage("english")}
-              disabled={isRecording}
-            >
-              <Text
-                style={[
-                  styles.languageButtonText,
-                  language === "english" && styles.languageButtonTextActive,
-                ]}
-              >
-                English
-              </Text>
-            </TouchableOpacity>
-          </View>
+        {/* Multilingual Mode Info */}
+        <View style={styles.multilingualInfo}>
+          <Ionicons name="globe-outline" size={20} color={COLORS.textPrimary} />
+          <Text style={styles.multilingualText}>
+            Multilingual Mode - Automatic Language Detection
+          </Text>
         </View>
 
         {/* Recording Button / Waveform */}
@@ -554,39 +510,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
-  languageSelector: {
-    marginBottom: 24,
-    alignItems: "center",
-  },
-  languageSelectorLabel: {
-    fontSize: 14,
-    color: COLORS.textPrimary,
-    marginBottom: 12,
-    fontWeight: "500",
-  },
-  languageButtons: {
+  multilingualInfo: {
     flexDirection: "row",
-    gap: 12,
-  },
-  languageButton: {
-    paddingHorizontal: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 24,
+    paddingHorizontal: 20,
     paddingVertical: 12,
     backgroundColor: COLORS.cardBackground,
     borderRadius: 20,
     borderWidth: 2,
     borderColor: COLORS.borderColor,
+    gap: 10,
   },
-  languageButtonActive: {
-    backgroundColor: COLORS.buttonBackground,
-    borderColor: COLORS.buttonBackground,
-  },
-  languageButtonText: {
-    fontSize: 16,
+  multilingualText: {
+    fontSize: 14,
     color: COLORS.textOnDarkTeal,
-    fontWeight: "600",
-  },
-  languageButtonTextActive: {
-    color: COLORS.buttonText,
+    fontWeight: "500",
   },
   recordingSection: {
     alignItems: "center",

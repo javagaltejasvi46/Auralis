@@ -10,42 +10,73 @@ import subprocess
 # Fix OpenMP library conflict
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 
-# Load Faster-Whisper medium model (better for Hindi Devanagari)
+# Load Faster-Whisper medium model (already downloaded)
 print("🔄 Loading Faster-Whisper medium model...")
 model = WhisperModel("medium", device="cpu", compute_type="int8")
 print("✅ Faster-Whisper model loaded successfully")
-print("💡 Medium model provides native Devanagari output for Hindi")
-
-# Language mapping
-LANGUAGE_MAP = {
-    'hindi': 'hi',
-    'english': 'en'
-}
+print("🌍 Auto-translate mode: All languages → English")
+print("💡 Supports Indian languages: Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Punjabi, etc.")
+print("👥 Speaker diarization enabled - Identifies different speakers")
 
 print("🎤 Real-time transcription server starting...")
 
-def transcribe_audio_file(audio_path, language='en'):
-    """Transcribe audio file using Faster-Whisper"""
+def transcribe_audio_file(audio_path, language=None):
+    """Transcribe audio file using Faster-Whisper with automatic language detection"""
     try:
-        print(f"🎯 Transcribing with Faster-Whisper (language: {language})...")
+        if language:
+            print(f"🎯 Transcribing with Faster-Whisper (language: {language})...")
+        else:
+            print(f"🎯 Transcribing with Faster-Whisper (auto-detect language)...")
         
-        # Transcribe with Faster-Whisper
-        # Medium model natively outputs Devanagari for Hindi
+        # Auto-detect language and translate to English
+        print("🎯 Detecting language and translating to English...")
+        
         segments, info = model.transcribe(
             audio_path,
-            language=language if language != 'auto' else None,  # Let Whisper detect if auto
-            beam_size=5,
-            vad_filter=False,  # Disable VAD to avoid onnxruntime dependency
-            task='transcribe',  # Use transcribe (not translate) to preserve native script
-            condition_on_previous_text=False  # Better for short audio clips
+            language=None,  # Auto-detect any language
+            beam_size=3,  # Reduced for speed
+            vad_filter=False,  # Disable VAD (requires onnxruntime)
+            task='translate',  # TRANSLATE to English (not transcribe)
+            condition_on_previous_text=False,
+            temperature=0.0,
+            word_timestamps=True  # For speaker diarization
         )
         
-        # Collect all segments
-        text = " ".join([segment.text for segment in segments])
-        result = text.strip()
+        # Process segments with speaker detection
+        text_parts = []
+        current_speaker = 1
+        previous_speaker = 1
+        last_end_time = 0
         
-        print(f"📝 Transcription: {result}")
-        print(f"📊 Detected language: {info.language}, probability: {info.language_probability:.2f}")
+        for segment in segments:
+            # Detect speaker change based on silence gap
+            silence_gap = segment.start - last_end_time
+            
+            # If silence > 2 seconds, likely a different speaker
+            if silence_gap > 2.0 and last_end_time > 0:
+                current_speaker += 1
+            
+            # Only add speaker label when speaker changes
+            if current_speaker != previous_speaker:
+                speaker_label = f"\n[Person {current_speaker}]: "
+                text_parts.append(speaker_label + segment.text.strip())
+                previous_speaker = current_speaker
+            else:
+                # Same speaker, just add text
+                text_parts.append(segment.text.strip())
+            
+            last_end_time = segment.end
+        
+        # Join with spaces, but preserve speaker labels on new lines
+        result = " ".join(text_parts)
+        
+        # Add initial speaker label if not present
+        if not result.startswith("[Person"):
+            result = f"[Person 1]: {result}"
+        
+        print(f"📝 Translation (English): {result}")
+        print(f"📊 Detected language: {info.language} (confidence: {info.language_probability:.2f})")
+        print(f"👥 Detected {current_speaker} speaker(s)")
         
         return result
     except Exception as e:
@@ -89,17 +120,14 @@ async def transcribe_audio(websocket):
     try:
         print(f"🔗 New client connected from {websocket.remote_address}")
         
-        # Send welcome message with available languages
+        # Send welcome message
         await websocket.send(json.dumps({
             'type': 'connected',
-            'message': 'Faster-Whisper transcription server ready',
-            'languages': list(LANGUAGE_MAP.keys())
+            'message': 'Faster-Whisper multilingual transcription server ready',
+            'mode': 'multilingual',
+            'auto_detect': True
         }))
-        print("📤 Sent welcome message")
-        
-        # Default language
-        current_language = 'hindi'
-        print(f"✅ Default language set to: {current_language}")
+        print("📤 Sent welcome message - Multilingual mode enabled")
     except Exception as e:
         print(f"❌ Error in connection setup: {e}")
         import traceback
@@ -132,9 +160,8 @@ async def transcribe_audio(websocket):
                         temp_path = temp_file.name
                     
                     try:
-                        # Transcribe with Whisper
-                        whisper_lang = LANGUAGE_MAP.get(current_language, 'en')
-                        result_text = transcribe_audio_file(temp_path, whisper_lang)
+                        # Transcribe with Whisper (auto-detect language)
+                        result_text = transcribe_audio_file(temp_path, None)
                         
                         if result_text:
                             await websocket.send(json.dumps({
@@ -152,24 +179,8 @@ async def transcribe_audio(websocket):
                 print(f"📨 Received control message: {message[:100]}...")
                 data = json.loads(message)
                 
-                if data.get('type') == 'set_language':
-                    # Change language
-                    new_language = data.get('language', 'hindi')
-                    if new_language in LANGUAGE_MAP:
-                        current_language = new_language
-                        print(f"🌍 Language changed to: {current_language}")
-                        await websocket.send(json.dumps({
-                            'type': 'language_changed',
-                            'language': current_language
-                        }))
-                    else:
-                        await websocket.send(json.dumps({
-                            'type': 'error',
-                            'message': f'Unknown language: {new_language}'
-                        }))
-                
-                elif data.get('type') == 'audio_file':
-                    print(f"🎵 Received audio file for transcription (Language: {current_language})")
+                if data.get('type') == 'audio_file':
+                    print(f"🎵 Received audio file for transcription (Multilingual auto-detect)")
                     
                     try:
                         # Decode base64 audio
@@ -200,26 +211,25 @@ async def transcribe_audio(websocket):
                             # Send processing message
                             await websocket.send(json.dumps({
                                 'type': 'processing',
-                                'message': f'Transcribing with Faster-Whisper ({current_language})...'
+                                'message': 'Transcribing with Faster-Whisper (Auto-detect)...'
                             }))
                             
-                            # Transcribe with Whisper
-                            whisper_lang = LANGUAGE_MAP.get(current_language, 'en')
-                            result_text = transcribe_audio_file(wav_path, whisper_lang)
+                            # Transcribe with Whisper (auto-detect language)
+                            result_text = transcribe_audio_file(wav_path, None)
                             
                             if result_text:
                                 print(f"✅ Transcription: {result_text}")
                                 await websocket.send(json.dumps({
                                     'type': 'final',
                                     'text': result_text,
-                                    'language': current_language
+                                    'mode': 'multilingual'
                                 }))
                             else:
                                 print("⚠️ No transcription result")
                                 await websocket.send(json.dumps({
                                     'type': 'final',
                                     'text': '(No speech detected)',
-                                    'language': current_language
+                                    'mode': 'multilingual'
                                 }))
                             
                             # Clean up WAV
@@ -255,8 +265,7 @@ async def transcribe_audio(websocket):
                             temp_path = temp_file.name
                         
                         try:
-                            whisper_lang = LANGUAGE_MAP.get(current_language, 'en')
-                            result_text = transcribe_audio_file(temp_path, whisper_lang)
+                            result_text = transcribe_audio_file(temp_path, None)
                             
                             if result_text:
                                 await websocket.send(json.dumps({

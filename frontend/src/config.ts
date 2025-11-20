@@ -3,8 +3,8 @@
  */
 
 // Update this with your machine's IP address
-export const API_BASE_URL = 'http://172.0.30.99:8002';
-export const WS_BASE_URL = 'ws://172.0.30.99:8003';
+export const API_BASE_URL = 'http://172.0.30.28:8002';
+export const WS_BASE_URL = 'ws://172.0.30.28:8003';
 
 export const API_ENDPOINTS = {
   // Auth

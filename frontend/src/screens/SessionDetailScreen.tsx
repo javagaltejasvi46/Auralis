@@ -22,6 +22,7 @@ export default function SessionDetailScreen({ route, navigation }: any) {
   const [isLoading, setIsLoading] = useState(true);
   const [transcription, setTranscription] = useState('');
   const [translatedText, setTranslatedText] = useState('');
+  const [notes, setNotes] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showTranslation, setShowTranslation] = useState(false);
@@ -36,6 +37,7 @@ export default function SessionDetailScreen({ route, navigation }: any) {
       setSession(fetchedSession);
       setTranscription(fetchedSession.original_transcription || '');
       setTranslatedText(fetchedSession.translated_transcription || '');
+      setNotes(fetchedSession.notes || '');
     } catch (error) {
       Alert.alert('Error', 'Failed to load session');
     } finally {
@@ -49,6 +51,7 @@ export default function SessionDetailScreen({ route, navigation }: any) {
       await sessionAPI.update(sessionId, {
         original_transcription: transcription,
         translated_transcription: translatedText || undefined,
+        notes: notes || undefined,
       });
       Alert.alert('Success', 'Session updated successfully');
     } catch (error) {
@@ -218,6 +221,20 @@ export default function SessionDetailScreen({ route, navigation }: any) {
           )}
         </View>
 
+        {/* Clinical Notes Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Clinical Notes</Text>
+          <TextInput
+            style={styles.notesInput}
+            value={notes}
+            onChangeText={setNotes}
+            placeholder="Add clinical notes, observations, diagnosis, treatment plans..."
+            placeholderTextColor={COLORS.textSecondary}
+            multiline
+            textAlignVertical="top"
+          />
+        </View>
+
         {/* Save Button */}
         <TouchableOpacity
           style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
@@ -225,10 +242,10 @@ export default function SessionDetailScreen({ route, navigation }: any) {
           disabled={isSaving}
         >
           {isSaving ? (
-            <ActivityIndicator color={COLORS.raisinBlack} />
+            <ActivityIndicator color={COLORS.textOnDarkTeal} />
           ) : (
             <>
-              <Ionicons name="save" size={20} color={COLORS.raisinBlack} />
+              <Ionicons name="save" size={20} color={COLORS.textOnDarkTeal} />
               <Text style={styles.saveButtonText}>Save Changes</Text>
             </>
           )}
@@ -341,6 +358,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.textOnDarkTeal,
     minHeight: 150,
+  },
+  notesInput: {
+    backgroundColor: COLORS.cardBackground,
+    borderWidth: 2,
+    borderColor: COLORS.borderColor,
+    borderRadius: 16,
+    padding: 16,
+    fontSize: 16,
+    color: COLORS.textOnDarkTeal,
+    minHeight: 120,
+    marginTop: 12,
   },
   saveButton: {
     flexDirection: 'row',
