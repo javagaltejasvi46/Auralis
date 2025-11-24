@@ -10,6 +10,10 @@ import subprocess
 # Fix OpenMP library conflict
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 
+# Auto-configure network on startup
+from auto_config import configure_network
+LOCAL_IP = configure_network()
+
 # Load Faster-Whisper medium model (already downloaded)
 print("🔄 Loading Faster-Whisper medium model...")
 model = WhisperModel("medium", device="cpu", compute_type="int8")

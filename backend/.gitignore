@@ -38,3 +38,6 @@ models/
 
 # Environment variables
 .env
+
+# Auto-configuration cache
+.ip_cache

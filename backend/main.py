@@ -18,6 +18,11 @@ from deep_translator import GoogleTranslator
 
 # Import routers
 from routers import auth_router, patient_router, session_router
+from summarization_service import summarization_service
+
+# Auto-configure network on startup
+from auto_config import configure_network
+LOCAL_IP = configure_network()
 
 app = FastAPI(
     title="AURALIS API",
@@ -164,6 +169,51 @@ async def translate_text(request: TranslateRequest):
             "target_language": request.target_language
         }
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class SummarizeRequest(BaseModel):
+    patient_id: int
+
+@app.post("/summarize-sessions")
+async def summarize_patient_sessions(request: SummarizeRequest, db: Session = Depends(get_db)):
+    """Summarize all sessions for a patient"""
+    try:
+        # Import here to avoid circular dependency
+        from models import Session
+        
+        # Get all sessions for the patient
+        sessions = db.query(Session).filter(
+            Session.patient_id == request.patient_id
+        ).order_by(Session.session_date).all()
+        
+        if not sessions:
+            return {
+                "success": False,
+                "message": "No sessions found for this patient"
+            }
+        
+        # Convert to dict format
+        session_dicts = [
+            {
+                "original_transcription": s.original_transcription,
+                "notes": s.notes,
+                "session_date": str(s.session_date)
+            }
+            for s in sessions
+        ]
+        
+        # Generate summary
+        summary_result = summarization_service.summarize_sessions(session_dicts)
+        
+        return {
+            "success": True,
+            "summary": summary_result["summary"],
+            "session_count": summary_result["session_count"],
+            "key_points": summary_result["key_points"]
+        }
+        
+    except Exception as e:
+        print(f"❌ Summarization error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

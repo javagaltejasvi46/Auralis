@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../config';
+import { COLORS, API_BASE_URL } from '../config';
 import { patientAPI, sessionAPI } from '../services/api';
 import { Patient, Session } from '../types';
 
@@ -22,6 +22,8 @@ export default function PatientProfileScreen({ route, navigation }: any) {
   const [isLoading, setIsLoading] = useState(true);
   const [notes, setNotes] = useState('');
   const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [summary, setSummary] = useState('');
 
   useEffect(() => {
     fetchPatientData();
@@ -106,6 +108,42 @@ export default function PatientProfileScreen({ route, navigation }: any) {
     );
   };
 
+  const handleSummarize = async () => {
+    if (!sessions || sessions.length === 0) {
+      Alert.alert('No Sessions', 'There are no sessions to summarize');
+      return;
+    }
+
+    setIsSummarizing(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/summarize-sessions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ patient_id: patientId }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSummary(data.summary);
+        Alert.alert(
+          'Summary Generated',
+          `Summarized ${data.session_count} sessions`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert('Error', data.message || 'Failed to generate summary');
+      }
+    } catch (error) {
+      console.error('❌ Summarization error:', error);
+      Alert.alert('Error', 'Failed to generate summary');
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <LinearGradient
@@ -179,11 +217,39 @@ export default function PatientProfileScreen({ route, navigation }: any) {
           </View>
         </View>
 
-        {/* Start Session Button */}
-        <TouchableOpacity style={styles.startSessionButton} onPress={handleStartSession}>
-          <Ionicons name="mic" size={24} color={COLORS.raisinBlack} />
-          <Text style={styles.startSessionText}>Start New Session</Text>
-        </TouchableOpacity>
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity style={styles.startSessionButton} onPress={handleStartSession}>
+            <Ionicons name="mic" size={24} color={COLORS.buttonText} />
+            <Text style={styles.startSessionText}>Start New Session</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.summarizeButton, isSummarizing && styles.summarizeButtonDisabled]} 
+            onPress={handleSummarize}
+            disabled={isSummarizing || sessions.length === 0}
+          >
+            {isSummarizing ? (
+              <ActivityIndicator color={COLORS.buttonText} />
+            ) : (
+              <>
+                <Ionicons name="document-text" size={24} color={COLORS.buttonText} />
+                <Text style={styles.summarizeButtonText}>Summarize</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Summary Display */}
+        {summary && (
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryHeader}>
+              <Ionicons name="star" size={20} color={COLORS.textOnDarkTeal} />
+              <Text style={styles.summaryTitle}>AI Summary</Text>
+            </View>
+            <Text style={styles.summaryText}>{summary}</Text>
+          </View>
+        )}
 
         {/* Sessions List */}
         <View style={styles.section}>
@@ -359,20 +425,67 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textOnDarkTeal,
   },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 24,
+  },
   startSessionButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.buttonBackground,
     paddingVertical: 16,
     borderRadius: 16,
-    marginBottom: 24,
-    gap: 12,
+    gap: 8,
   },
   startSessionText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: COLORS.buttonText,
+  },
+  summarizeButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.darkTeal,
+    paddingVertical: 16,
+    borderRadius: 16,
+    gap: 8,
+  },
+  summarizeButtonDisabled: {
+    opacity: 0.6,
+  },
+  summarizeButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.buttonText,
+  },
+  summaryCard: {
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 2,
+    borderColor: COLORS.borderColor,
+  },
+  summaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  summaryTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.textOnDarkTeal,
+  },
+  summaryText: {
+    fontSize: 15,
+    color: COLORS.textOnDarkTeal,
+    lineHeight: 22,
   },
   section: {
     marginBottom: 24,
