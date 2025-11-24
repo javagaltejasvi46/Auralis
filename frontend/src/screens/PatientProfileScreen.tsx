@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, API_BASE_URL } from '../config';
 import { patientAPI, sessionAPI } from '../services/api';
 import { Patient, Session } from '../types';
+import { SummaryRenderer } from '../components/SummaryRenderer';
 
 export default function PatientProfileScreen({ route, navigation }: any) {
   const { patientId } = route.params;
@@ -247,7 +248,7 @@ export default function PatientProfileScreen({ route, navigation }: any) {
               <Ionicons name="star" size={20} color={COLORS.textOnDarkTeal} />
               <Text style={styles.summaryTitle}>AI Summary</Text>
             </View>
-            <Text style={styles.summaryText}>{summary}</Text>
+            <SummaryRenderer summary={summary} style={styles.summaryText} />
           </View>
         )}
 

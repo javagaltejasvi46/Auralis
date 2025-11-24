@@ -1,0 +1,2 @@
+# Google Gemini API for Summarization
+google-generativeai>=0.3.0
