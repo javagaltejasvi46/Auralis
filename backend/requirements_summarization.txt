@@ -1,3 +1,0 @@
-# Summarization Dependencies (API-based - No model download!)
-# requests is already in main requirements.txt
-# No additional packages needed!

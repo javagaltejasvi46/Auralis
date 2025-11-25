@@ -1,357 +1,328 @@
-# AURALIS - Medical Voice Transcription
+# Auralis - Medical Voice Transcription System
 
-**Hear . Understand . Heal**
+Professional therapy session transcription and management system with AI-powered summarization.
 
-A real-time voice transcription application with multilingual support (Hindi & English), built with React Native and Faster-Whisper AI.
+## Overview
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![Python](https://img.shields.io/badge/python-3.10--3.13-green)
-![React Native](https://img.shields.io/badge/react--native-expo-blue)
+Auralis is a complete medical transcription solution designed for mental health professionals. It provides real-time multilingual transcription, automatic translation, patient management, and AI-powered session summarization.
 
-## Features
+## Key Features
 
-✨ **Real-time Transcription** - Live voice-to-text conversion
-🌍 **Multilingual** - Hindi (Devanagari) & English support
-🔄 **Translation** - Translate between Hindi and English
-📱 **Mobile-First** - Built with React Native/Expo
-🎯 **High Accuracy** - Powered by Faster-Whisper Medium model
-🔒 **Offline Capable** - Works without internet after setup
-🎨 **Modern UI** - Beautiful gradient design with smooth animations
-
-## Tech Stack
-
-### Frontend
-- React Native (Expo)
-- TypeScript
-- Expo Audio for recording
-- WebSocket for real-time communication
-
-### Backend
-- Python 3.10+
-- FastAPI (REST API)
-- Faster-Whisper (AI transcription)
-- WebSockets (real-time streaming)
-- Deep-Translator (translation)
-- SQLite (database)
+- 🎤 **Real-Time Transcription** - Faster-Whisper for accurate speech-to-text
+- 🌍 **Multilingual Support** - 90+ languages with auto-translation to English
+- 👥 **Speaker Diarization** - Identifies different speakers automatically
+- 🤖 **AI Summarization** - Google Gemini for professional therapy summaries
+- 📱 **Mobile App** - React Native app for iOS and Android
+- 🔐 **Secure** - JWT authentication and HIPAA-compliant design
+- 🌐 **Auto-Configuration** - Automatic network setup
+- 📝 **Clinical Notes** - Add observations and treatment plans
+- 🎯 **Risk Detection** - Automatic flagging of sensitive keywords
 
 ## Quick Start
 
-### Option 1: Docker (Recommended)
+### Prerequisites
 
-```bash
-# Clone the repository
-git clone <your-repo-url>
-cd Auralis
-
-# Start with Docker Compose
-docker-compose up -d
-
-# Frontend will be available at: http://localhost:19000
-# Backend API: http://localhost:8002
-# WebSocket: ws://localhost:8003
-```
-
-### Option 2: Manual Installation
-
-#### Prerequisites
-- Python 3.10-3.13
+- Python 3.8+
 - Node.js 16+
 - FFmpeg
-- Git
+- Expo Go app (for mobile testing)
 
-#### Backend Setup
+### 1. Backend Setup
 
 ```bash
-# Navigate to backend
 cd backend
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Install Faster-Whisper
-.\install_whisper.bat  # Windows
-# or
-./install_whisper.sh   # Linux/Mac
-
-# Start HTTP API server (Terminal 1)
-python main.py
-
-# Start WebSocket transcription server (Terminal 2)
-.\start_transcription.bat  # Windows
-# or
-python transcription_server.py  # Linux/Mac
+python main.py  # Terminal 1
+python transcription_server.py  # Terminal 2
 ```
 
-#### Frontend Setup
+Or use startup scripts:
+```bash
+# Windows
+start_backend.bat
+
+# PowerShell
+.\start_backend.ps1
+```
+
+### 2. Frontend Setup
 
 ```bash
-# Navigate to frontend
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start Expo development server
 npx expo start
-
-# Scan QR code with Expo Go app (iOS/Android)
-# or press 'a' for Android emulator, 'i' for iOS simulator
 ```
 
-## Configuration
+Scan QR code with Expo Go app on your phone.
 
-### Backend Ports
-- **8002** - HTTP REST API (file uploads, translation)
-- **8003** - WebSocket (real-time transcription)
+### 3. Configure Gemini API
 
-### Update IP Address
-Edit `frontend/App.tsx` and update the IP address to your machine's local IP:
-
-```typescript
-const urls = ['http://YOUR_IP:8002', ...];
-const wsUrls = ['ws://YOUR_IP:8003', ...];
-```
-
-Find your IP:
-- Windows: `ipconfig`
-- Linux/Mac: `ifconfig` or `ip addr`
-
-## Usage
-
-1. **Select Language** - Choose Hindi (हिंदी) or English
-2. **Start Recording** - Tap the microphone button
-3. **Speak** - The waveform shows your voice activity
-4. **Stop Recording** - Tap the Stop button
-5. **View Transcription** - Text appears in the transcription box
-6. **Translate** (Optional) - Tap Translate to convert between languages
+1. Get API key from: https://makersuite.google.com/app/apikey
+2. Update `backend/summarization_service.py` line 6:
+   ```python
+   self.api_key = "YOUR_API_KEY_HERE"
+   ```
 
 ## Project Structure
 
 ```
 Auralis/
-├── frontend/              # React Native app
-│   ├── App.tsx           # Main application
-│   ├── package.json      # Dependencies
-│   └── app.json          # Expo configuration
-├── backend/              # Python backend
-│   ├── main.py          # FastAPI HTTP server
-│   ├── transcription_server.py  # WebSocket server
-│   ├── audio_processor.py       # Audio processing
-│   ├── models.py        # Database models
-│   ├── config.py        # Configuration
-│   └── requirements.txt # Python dependencies
-├── docker-compose.yml   # Docker orchestration
-├── Dockerfile.backend   # Backend container
-├── Dockerfile.frontend  # Frontend container
-└── README.md           # This file
+├── backend/                 # Python FastAPI backend
+│   ├── main.py             # Main API server (port 8002)
+│   ├── transcription_server.py  # WebSocket server (port 8003)
+│   ├── summarization_service.py # Gemini AI integration
+│   ├── auto_config.py      # Network auto-configuration
+│   ├── routers/            # API endpoints
+│   ├── models.py           # Database models
+│   ├── requirements.txt    # Python dependencies
+│   └── README.md           # Backend documentation
+│
+├── frontend/               # React Native mobile app
+│   ├── src/
+│   │   ├── screens/       # App screens
+│   │   ├── components/    # Reusable components
+│   │   ├── services/      # API integration
+│   │   └── config.ts      # Configuration
+│   ├── package.json       # Node dependencies
+│   └── README.md          # Frontend documentation
+│
+├── start_backend.bat      # Windows startup script
+├── start_backend.ps1      # PowerShell startup script
+└── README.md              # This file
 ```
 
-## API Documentation
+## Architecture
 
-### REST API (Port 8002)
+### Backend (Python)
+- **FastAPI** - REST API framework
+- **Faster-Whisper** - Speech-to-text transcription
+- **SQLAlchemy** - Database ORM
+- **Google Gemini** - AI summarization
+- **WebSockets** - Real-time communication
 
-#### Upload Audio
-```http
-POST /upload-audio
-Content-Type: multipart/form-data
+### Frontend (React Native)
+- **Expo** - Development platform
+- **React Navigation** - Screen navigation
+- **Expo AV** - Audio recording
+- **WebSocket** - Real-time transcription
 
-Response: { "success": true, "file_id": "uuid" }
-```
+### Database
+- **SQLite** - Local database
+- **Models**: Therapist, Patient, Session
 
-#### Translate Text
-```http
-POST /translate
-Content-Type: application/json
+## Features in Detail
 
-Body: {
-  "text": "Hello",
-  "target_language": "hi",
-  "source_language": "en"
-}
+### Real-Time Transcription
+- Supports 90+ languages including Hindi, Tamil, Telugu, Kannada
+- Automatic translation to English
+- Speaker diarization (identifies different speakers)
+- WebSocket-based real-time streaming
 
-Response: {
-  "success": true,
-  "translated_text": "नमस्ते"
-}
-```
+### AI Summarization
+- Professional therapy session summaries
+- Sensitive keyword highlighting (suicide, self-harm, violence)
+- Markdown formatting with bold and red text
+- Context-aware summaries
 
-#### Get Recordings
-```http
-GET /recordings
+### Patient Management
+- Complete patient profiles
+- Session history tracking
+- Clinical notes
+- Search and filter capabilities
 
-Response: {
-  "recordings": [...]
-}
-```
+### Security
+- JWT-based authentication
+- Password hashing with bcrypt
+- HIPAA-compliant design
+- Local data processing
 
-### WebSocket API (Port 8003)
+## API Endpoints
 
-#### Connect
-```javascript
-ws = new WebSocket('ws://localhost:8003');
-```
+### Authentication
+- `POST /auth/register` - Register therapist
+- `POST /auth/login` - Login
+- `GET /auth/me` - Get current user
 
-#### Set Language
-```json
-{
-  "type": "set_language",
-  "language": "hindi"  // or "english"
-}
-```
+### Patients
+- `GET /patients/` - List patients
+- `POST /patients/` - Create patient
+- `GET /patients/{id}` - Get patient
+- `PUT /patients/{id}` - Update patient
+- `DELETE /patients/{id}` - Delete patient
 
-#### Send Audio File
-```json
-{
-  "type": "audio_file",
-  "data": "base64_encoded_audio",
-  "format": "m4a"
-}
-```
+### Sessions
+- `GET /sessions/patient/{id}` - Get patient sessions
+- `POST /sessions/` - Create session
+- `PUT /sessions/{id}` - Update session
+- `DELETE /sessions/{id}` - Delete session
 
-#### Receive Transcription
-```json
-{
-  "type": "final",
-  "text": "transcribed text",
-  "language": "hindi"
-}
-```
+### AI Features
+- `POST /summarize-sessions` - Generate summary
+- `POST /translate` - Translate text
 
-## Models
+## Configuration
 
-### Faster-Whisper Medium
-- **Size**: ~1.5GB
-- **Languages**: 99+ languages
-- **Accuracy**: High
-- **Speed**: ~5-10 seconds per minute of audio
-- **Native Scripts**: Outputs Devanagari for Hindi
+### Auto-Configuration
+The system automatically detects your local IP address and updates:
+- Frontend config (`frontend/src/config.ts`)
+- Backend config (`backend/config.py`)
 
-Downloaded automatically on first run to:
-- Windows: `C:\Users\<user>\.cache\huggingface\`
-- Linux/Mac: `~/.cache/huggingface/`
+When you switch networks, just restart the backend and it reconfigures automatically.
 
-## Troubleshooting
-
-### Backend won't start
-```bash
-# Check Python version
-python --version  # Should be 3.10-3.13
-
-# Reinstall dependencies
-pip install -r requirements.txt --force-reinstall
-```
-
-### Frontend can't connect
-1. Check backend is running on both ports (8002 & 8003)
-2. Update IP address in `frontend/App.tsx`
-3. Ensure firewall allows connections
-4. Try `http://localhost:8002` if testing on same machine
-
-### FFmpeg not found
-```bash
-# Windows
-winget install Gyan.FFmpeg.Essentials
-
-# Mac
-brew install ffmpeg
-
-# Linux
-sudo apt install ffmpeg
-```
-
-### Model download fails
-- Check internet connection
-- Ensure ~2GB free disk space
-- Model downloads to cache automatically
-
-### Hindi shows romanized text
-- Ensure using **medium** model (not base/small)
-- Check language is set to 'hindi' before recording
-- Medium model natively outputs Devanagari
+### Manual Configuration
+If needed, update these files:
+- `frontend/src/config.ts` - API and WebSocket URLs
+- `backend/summarization_service.py` - Gemini API key
 
 ## Development
 
-### Run in Development Mode
-
+### Backend Development
 ```bash
-# Backend with auto-reload
 cd backend
-uvicorn main:app --reload --port 8002
+python main.py  # API server on port 8002
+```
 
-# Frontend with hot reload
+API documentation: http://localhost:8002/docs
+
+### Frontend Development
+```bash
 cd frontend
 npx expo start
 ```
 
-### Build for Production
+### Testing
+- Backend: Use FastAPI docs at `/docs`
+- Frontend: Test on physical device with Expo Go
+- WebSocket: Connect to `ws://YOUR_IP:8003`
 
+## Deployment
+
+### Backend
 ```bash
-# Android APK
-cd frontend
+# Production server
+uvicorn main:app --host 0.0.0.0 --port 8002
+```
+
+### Frontend
+```bash
+# Build APK (Android)
 eas build --platform android
 
-# iOS IPA
+# Build IPA (iOS)
 eas build --platform ios
 ```
 
-## Docker Details
+## Troubleshooting
 
-### Services
-- **backend-api**: FastAPI HTTP server
-- **backend-ws**: WebSocket transcription server
-- **frontend**: Expo development server
+### Backend Issues
+- **Port in use**: Kill process or change port
+- **Whisper model**: Will download automatically (~1GB)
+- **Gemini errors**: Check API key validity
 
-### Volumes
-- `whisper-models`: Cached AI models
-- `uploads`: Audio file storage
-- `database`: SQLite database
+### Frontend Issues
+- **Can't connect**: Verify IP address in config
+- **Audio not working**: Check microphone permissions
+- **WebSocket fails**: Ensure backend is running
 
-### Environment Variables
-```env
-PYTHON_ENV=production
-API_PORT=8002
-WS_PORT=8003
-```
+### Network Issues
+- Ensure device and backend on same WiFi
+- Check firewall settings
+- Verify IP address is correct
 
 ## Performance
 
 ### System Requirements
-- **CPU**: 4+ cores recommended
 - **RAM**: 4GB minimum, 8GB recommended
-- **Storage**: 5GB (includes models)
-- **Network**: Required for initial model download
+- **Storage**: 2GB for models and data
+- **CPU**: Multi-core recommended for transcription
+- **Network**: Local WiFi (no internet required except for Gemini)
 
-### Benchmarks
-- Transcription: ~5-10 seconds per minute of audio
-- Real-time factor: 0.1-0.2x (10-20% of audio duration)
-- Concurrent users: 10+ (depends on CPU)
+### Optimization
+- Use GPU for faster transcription (if available)
+- Adjust Whisper model size (tiny/base/small/medium)
+- Enable caching for frequent queries
+- Limit concurrent transcription sessions
 
-## Contributing
+## Security & Privacy
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+### HIPAA Compliance
+- ✅ Local data processing
+- ✅ Encrypted authentication
+- ✅ No external data sharing (except Gemini summaries)
+- ✅ Audit trail in database
+- ✅ Secure password storage
 
-## License
-
-This project is licensed under the MIT License - see LICENSE file for details.
-
-## Acknowledgments
-
-- [Faster-Whisper](https://github.com/guillaumekln/faster-whisper) - AI transcription
-- [OpenAI Whisper](https://github.com/openai/whisper) - Base model
-- [Expo](https://expo.dev/) - React Native framework
-- [FastAPI](https://fastapi.tiangolo.com/) - Backend framework
+### Best Practices
+- Change default API keys
+- Use HTTPS in production
+- Regular database backups
+- Limit API access
+- Monitor system logs
 
 ## Support
 
-For issues and questions:
-- Open an issue on GitHub
-- Check existing documentation
-- Review troubleshooting section
+### Documentation
+- Backend: `backend/README.md`
+- Frontend: `frontend/README.md`
+- API Docs: http://localhost:8002/docs
+
+### Common Issues
+1. **Transcription slow**: Use smaller Whisper model
+2. **Network errors**: Check IP configuration
+3. **API errors**: Verify authentication token
+4. **Audio issues**: Test microphone permissions
+
+### Getting Help
+- Check README files in each directory
+- Review API documentation
+- Test with provided examples
+- Check system logs
+
+## Technology Stack
+
+### Backend
+- Python 3.8+
+- FastAPI
+- Faster-Whisper
+- SQLAlchemy
+- Google Gemini API
+- WebSockets
+
+### Frontend
+- React Native
+- Expo
+- TypeScript
+- React Navigation
+- Expo AV
+
+### Database
+- SQLite
+- SQLAlchemy ORM
+
+## Roadmap
+
+### Planned Features
+- [ ] Cloud backup
+- [ ] Multi-therapist support
+- [ ] Advanced analytics
+- [ ] Custom AI model training
+- [ ] Video session support
+- [ ] Appointment scheduling
+
+## License
+
+Proprietary - Auralis Medical Transcription System
+
+## Credits
+
+Developed for mental health professionals to streamline therapy session documentation and improve patient care.
 
 ---
 
-**Made with ❤️ for better healthcare communication**
+**Version**: 2.0.0
+**Status**: Production Ready
+**Last Updated**: November 2025
+
+For detailed documentation, see:
+- Backend: `backend/README.md`
+- Frontend: `frontend/README.md`
