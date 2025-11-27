@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../config';
+import { COLORS, CARD_GLOW_STYLE } from '../config';
 import { patientAPI } from '../services/api';
 import { Patient } from '../types';
 import { useFocusEffect } from '@react-navigation/native';
@@ -139,15 +139,17 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: COLORS.cardBackground,
     borderRadius: 12,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: COLORS.borderColor,
+    ...CARD_GLOW_STYLE,
   },
   addButton: {
     padding: 10,
     backgroundColor: COLORS.cardBackground,
     borderRadius: 12,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: COLORS.borderColor,
+    ...CARD_GLOW_STYLE,
   },
   title: {
     fontSize: 24,
@@ -185,6 +187,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 25,
     marginTop: 30,
+    ...CARD_GLOW_STYLE,
   },
   createButtonText: {
     fontSize: 16,
@@ -203,8 +206,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: COLORS.borderColor,
+    ...CARD_GLOW_STYLE,
   },
   patientIconContainer: {
     width: 50,

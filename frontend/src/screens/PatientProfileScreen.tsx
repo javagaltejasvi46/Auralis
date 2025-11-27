@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, API_BASE_URL } from '../config';
+import { COLORS, API_BASE_URL, CARD_GLOW_STYLE, CARD_WITH_GLOW } from '../config';
 import { patientAPI, sessionAPI } from '../services/api';
 import { Patient, Session } from '../types';
 import { SummaryRenderer } from '../components/SummaryRenderer';
@@ -363,8 +363,9 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: COLORS.cardBackground,
     borderRadius: 12,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: COLORS.borderColor,
+    ...CARD_GLOW_STYLE,
   },
   title: {
     fontSize: 24,
@@ -388,10 +389,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.cardBackground,
     borderRadius: 20,
     padding: 24,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: COLORS.borderColor,
     alignItems: 'center',
     marginBottom: 20,
+    ...CARD_GLOW_STYLE,
   },
   avatarContainer: {
     width: 80,
@@ -440,6 +442,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
     gap: 8,
+    ...CARD_GLOW_STYLE,
   },
   startSessionText: {
     fontSize: 16,
@@ -455,6 +458,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
     gap: 8,
+    ...CARD_GLOW_STYLE,
   },
   summarizeButtonDisabled: {
     opacity: 0.6,
@@ -469,8 +473,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
-    borderWidth: 2,
-    borderColor: COLORS.borderColor,
+    borderWidth: 1,
+    borderColor: COLORS.success,
+    ...CARD_GLOW_STYLE,
+    shadowColor: COLORS.success,
   },
   summaryHeader: {
     flexDirection: 'row',
@@ -502,8 +508,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 40,
     alignItems: 'center',
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: COLORS.borderColor,
+    ...CARD_GLOW_STYLE,
   },
   emptyText: {
     fontSize: 14,
@@ -515,8 +522,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: COLORS.borderColor,
+    ...CARD_GLOW_STYLE,
   },
   sessionHeader: {
     flexDirection: 'row',
@@ -578,14 +586,15 @@ const styles = StyleSheet.create({
   },
   notesInput: {
     backgroundColor: COLORS.cardBackground,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: COLORS.borderColor,
     borderRadius: 16,
     padding: 16,
     fontSize: 14,
-    color: COLORS.textPrimary,
+    color: COLORS.textOnDarkTeal,
     minHeight: 150,
     marginBottom: 12,
+    ...CARD_GLOW_STYLE,
   },
   saveButton: {
     flexDirection: 'row',
@@ -595,6 +604,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     gap: 8,
+    ...CARD_GLOW_STYLE,
   },
   saveButtonDisabled: {
     opacity: 0.6,

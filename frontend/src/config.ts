@@ -3,8 +3,8 @@
  */
 
 // Update this with your machine's IP address
-export const API_BASE_URL = 'http://10.246.80.160:8002';
-export const WS_BASE_URL = 'ws://10.246.80.160:8003';
+export const API_BASE_URL = 'http://192.168.0.114:8002';
+export const WS_BASE_URL = 'ws://192.168.0.114:8003';
 
 export const API_ENDPOINTS = {
   // Auth
@@ -40,8 +40,8 @@ export const COLORS = {
   backgroundGradient: ['#F2EFEB', '#F2EFEB', '#F2EFEB', '#F2EFEB'],
   
   // UI
-  cardBackground: 'rgba(17, 56, 69, 0.95)',  // Dark Teal sections
-  borderColor: 'rgba(133, 163, 179, 0.5)',   // Cool Steel border
+  cardBackground: 'rgba(17, 56, 69, 0.97)',  // Dark Teal sections (slightly more opaque)
+  borderColor: 'rgba(133, 163, 179, 0.4)',   // Cool Steel border
   textPrimary: '#85A3B3',      // Cool Steel text (on parchment background)
   textSecondary: 'rgba(133, 163, 179, 0.7)',    // Cool Steel text lighter
   textOnDarkTeal: '#FFFFFF',   // White text on dark teal background
@@ -52,4 +52,27 @@ export const COLORS = {
   success: '#4ade80',
   error: '#ef4444',
   warning: '#fbbf24',
+  
+  // Glow colors
+  glowColor: 'rgba(133, 163, 179, 0.4)',  // Cool Steel glow
+  glowColorStrong: 'rgba(133, 163, 179, 0.6)',
+};
+
+// Shared shadow/glow style for dark cards
+// iOS uses shadowColor, Android uses elevation
+export const CARD_GLOW_STYLE = {
+  // iOS shadow - creates glow effect
+  shadowColor: '#85A3B3',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.6,
+  shadowRadius: 20,
+  // Android elevation - creates shadow
+  elevation: 12,
+};
+
+// Card style with glow border (for extra glow effect)
+export const CARD_WITH_GLOW = {
+  ...CARD_GLOW_STYLE,
+  borderWidth: 1.5,
+  borderColor: 'rgba(133, 163, 179, 0.35)',
 };

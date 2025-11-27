@@ -17,8 +17,15 @@ from config import settings
 from deep_translator import GoogleTranslator
 
 # Import routers
-from routers import auth_router, patient_router, session_router
-from summarization_service import summarization_service
+from routers import auth_router, patient_router, session_router, notes_router
+
+# Import summarization service (try new Phi-3 service first, fallback to Gemini)
+try:
+    from summarization_service_phi3 import summarization_service
+    print("✅ Using Phi-3-Mini local model for summarization")
+except Exception as e:
+    print(f"⚠️  Phi-3 service not available, falling back to Gemini: {e}")
+    from summarization_service import summarization_service
 
 # Auto-configure network on startup
 from auto_config import configure_network
@@ -50,6 +57,7 @@ app.add_middleware(
 app.include_router(auth_router.router)
 app.include_router(patient_router.router)
 app.include_router(session_router.router)
+app.include_router(notes_router.router)
 
 @app.get("/")
 async def root():
@@ -67,11 +75,29 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {
+    """Enhanced health check with model information"""
+    health_data = {
         "status": "healthy",
         "version": "2.0.0",
         "database": "connected"
     }
+    
+    # Add model information if using Phi-3
+    try:
+        if hasattr(summarization_service, 'get_statistics'):
+            stats = summarization_service.get_statistics()
+            health_data.update({
+                "model_loaded": stats['model_info']['loaded'],
+                "model_name": stats['model_info'].get('model_path', 'unknown'),
+                "model_size_mb": stats['model_info'].get('model_size_mb', 0),
+                "total_inferences": stats['total_inferences'],
+                "success_rate": stats['success_rate'],
+                "avg_inference_time": stats['avg_inference_time']
+            })
+    except:
+        pass
+    
+    return health_data
 
 # Legacy audio upload endpoint (for backward compatibility)
 @app.post("/upload-audio")

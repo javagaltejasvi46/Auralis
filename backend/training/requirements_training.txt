@@ -1,0 +1,29 @@
+# Training Dependencies for Phi-3-Mini Fine-tuning
+
+# Core ML Framework
+torch>=2.0.0
+transformers>=4.35.0
+
+# Parameter-Efficient Fine-Tuning
+peft>=0.6.0
+trl>=0.7.0
+
+# Data Processing
+datasets>=2.14.0
+pandas>=2.0.0
+
+# Optimization
+accelerate>=0.24.0
+bitsandbytes>=0.41.0
+scipy>=1.11.0
+
+# Evaluation
+rouge-score>=0.1.2
+nltk>=3.8.0
+
+# Testing
+pytest>=7.4.0
+hypothesis>=6.90.0
+
+# Utilities
+tqdm>=4.66.0

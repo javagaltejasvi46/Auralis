@@ -9,7 +9,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
-import { COLORS } from '../config';
+import { COLORS, CARD_GLOW_STYLE } from '../config';
 
 export default function DashboardScreen({ navigation }: any) {
   const { therapist, logout } = useAuth();
@@ -122,17 +122,19 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: COLORS.cardBackground,
     borderRadius: 12,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: COLORS.borderColor,
+    ...CARD_GLOW_STYLE,
   },
   statsCard: {
     backgroundColor: COLORS.cardBackground,
     borderRadius: 20,
     padding: 30,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: COLORS.borderColor,
     marginBottom: 30,
     alignItems: 'center',
+    ...CARD_GLOW_STYLE,
   },
   statItem: {
     alignItems: 'center',
@@ -164,8 +166,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 12,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: COLORS.borderColor,
+    ...CARD_GLOW_STYLE,
   },
   actionIconContainer: {
     width: 50,

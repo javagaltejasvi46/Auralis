@@ -131,6 +131,12 @@ class Session(Base):
     treatment_plan = Column(Text)
     is_completed = Column(Boolean, default=False)
     
+    # Notes metadata (for AI-generated notes tracking)
+    notes_is_ai_generated = Column(Boolean, default=False)
+    notes_edited_from_ai = Column(Boolean, default=False)
+    notes_generated_at = Column(DateTime, nullable=True)
+    notes_last_edited_at = Column(DateTime, nullable=True)
+    
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -154,6 +160,12 @@ class Session(Base):
             "diagnosis": self.diagnosis,
             "treatment_plan": self.treatment_plan,
             "is_completed": self.is_completed,
+            "notes_metadata": {
+                "is_ai_generated": self.notes_is_ai_generated,
+                "edited_from_ai": self.notes_edited_from_ai,
+                "generated_at": self.notes_generated_at.isoformat() if self.notes_generated_at else None,
+                "last_edited_at": self.notes_last_edited_at.isoformat() if self.notes_last_edited_at else None
+            },
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None
         }

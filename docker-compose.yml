@@ -11,14 +11,26 @@ services:
       - "8002:8002"
     volumes:
       - ./backend:/app
+      - ./models:/app/models  # Phi-3-Mini model directory
       - whisper-models:/root/.cache/huggingface
       - uploads:/app/uploads
       - database:/app
     environment:
       - PYTHON_ENV=production
       - API_PORT=8002
+      # Phi-3-Mini Configuration
+      - PHI3_MODEL_PATH=/app/models/phi3-therapy-q4_k_m.gguf
+      - PHI3_N_CTX=2048
+      - PHI3_N_THREADS=4
+      - PHI3_N_GPU_LAYERS=0  # Set to 32 for GPU offload
     command: python main.py
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+        reservations:
+          memory: 3G
     networks:
       - auralis-network
 
@@ -74,6 +86,8 @@ volumes:
   uploads:
     driver: local
   database:
+    driver: local
+  models:
     driver: local
 
 networks:
