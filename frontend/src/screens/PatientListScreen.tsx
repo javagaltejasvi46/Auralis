@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   StyleSheet, 
   Text, 
@@ -12,20 +12,37 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, CARD_GLOW_STYLE } from '../config';
 import { patientAPI } from '../services/api';
-import { Patient } from '../types';
+import { Patient, SearchResult } from '../types';
 import { useFocusEffect } from '@react-navigation/native';
+import { SearchBar } from '../components/SearchBar';
+import { highlightText } from '../utils/highlight';
 
 export default function PatientListScreen({ navigation }: any) {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
-  // Fetch patients when screen comes into focus
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       fetchPatients();
     }, [])
   );
+
+  useEffect(() => {
+    if (searchQuery.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    const debounceTimer = setTimeout(() => {
+      performSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
 
   const fetchPatients = async () => {
     try {
@@ -39,31 +56,81 @@ export default function PatientListScreen({ navigation }: any) {
     }
   };
 
+
+  const performSearch = async (query: string) => {
+    setIsSearching(true);
+    try {
+      const response = await patientAPI.search(query);
+      setSearchResults(response.results);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+  };
+
   const handleRefresh = () => {
     setIsRefreshing(true);
+    setSearchQuery('');
+    setSearchResults([]);
     fetchPatients();
   };
 
-  const renderPatientCard = ({ item }: { item: Patient }) => (
-    <TouchableOpacity 
-      style={styles.patientCard}
-      onPress={() => navigation.navigate('PatientProfile', { patientId: item.id })}
-    >
-      <View style={styles.patientIconContainer}>
-        <Ionicons name="person" size={28} color={COLORS.raisinBlack} />
-      </View>
-      <View style={styles.patientInfo}>
-        <Text style={styles.patientName}>{item.full_name}</Text>
-        <Text style={styles.patientId}>ID: {item.patient_id}</Text>
-        {item.phone && (
-          <Text style={styles.patientDetail}>
-            <Ionicons name="call" size={12} /> {item.phone}
+  const isSearchActive = searchQuery.length >= 2;
+  const displayData = isSearchActive ? searchResults.map(r => r.patient) : patients;
+
+  const renderPatientCard = ({ item, index }: { item: Patient; index: number }) => {
+    const searchResult = isSearchActive ? searchResults[index] : null;
+    
+    return (
+      <TouchableOpacity 
+        style={styles.patientCard}
+        onPress={() => navigation.navigate('PatientProfile', { patientId: item.id })}
+      >
+        <View style={styles.patientIconContainer}>
+          <Ionicons name="person" size={28} color={COLORS.raisinBlack} />
+        </View>
+        <View style={styles.patientInfo}>
+          <Text style={styles.patientName}>
+            {isSearchActive && searchResult?.match_field === 'name' 
+              ? highlightText(item.full_name, searchQuery)
+              : item.full_name}
           </Text>
-        )}
-      </View>
-      <Ionicons name="chevron-forward" size={24} color={COLORS.paleAzure} />
-    </TouchableOpacity>
+          <Text style={styles.patientId}>
+            ID: {isSearchActive && searchResult?.match_field === 'patient_id'
+              ? highlightText(item.patient_id, searchQuery)
+              : item.patient_id}
+          </Text>
+          {item.phone && (
+            <Text style={styles.patientDetail}>
+              <Ionicons name="call" size={12} />{' '}
+              {isSearchActive && searchResult?.match_field === 'phone'
+                ? highlightText(item.phone, searchQuery)
+                : item.phone}
+            </Text>
+          )}
+        </View>
+        <Ionicons name="chevron-forward" size={24} color={COLORS.paleAzure} />
+      </TouchableOpacity>
+    );
+  };
+
+  const renderEmptySearch = () => (
+    <View style={styles.emptySearchContainer}>
+      <Ionicons name="search-outline" size={60} color={COLORS.textSecondary} />
+      <Text style={styles.emptySearchText}>No patients found</Text>
+      <Text style={styles.emptySearchSubtext}>
+        Try searching with a different name, phone, or ID
+      </Text>
+    </View>
   );
+
 
   return (
     <LinearGradient
@@ -86,16 +153,25 @@ export default function PatientListScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
+      <View style={styles.searchContainer}>
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onClear={handleClearSearch}
+          isLoading={isSearching}
+          placeholder="Search by name, phone, or ID..."
+        />
+      </View>
+
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.paleAzure} />
         </View>
-      ) : patients.length === 0 ? (
+      ) : !isSearchActive && patients.length === 0 ? (
         <View style={styles.content}>
           <Ionicons name="people-outline" size={80} color={COLORS.paleAzure} />
           <Text style={styles.emptyText}>No patients yet</Text>
           <Text style={styles.emptySubtext}>Create your first patient to get started</Text>
-          
           <TouchableOpacity
             style={styles.createButton}
             onPress={() => navigation.navigate('CreatePatient')}
@@ -104,9 +180,11 @@ export default function PatientListScreen({ navigation }: any) {
             <Text style={styles.createButtonText}>Create Patient</Text>
           </TouchableOpacity>
         </View>
+      ) : isSearchActive && searchResults.length === 0 && !isSearching ? (
+        renderEmptySearch()
       ) : (
         <FlatList
-          data={patients}
+          data={displayData}
           renderItem={renderPatientCard}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContent}
@@ -123,6 +201,7 @@ export default function PatientListScreen({ navigation }: any) {
   );
 }
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -133,7 +212,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 60,
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 12,
   },
   backButton: {
     padding: 10,
@@ -155,6 +234,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: COLORS.paleAzure,
+  },
+  searchContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 16,
   },
   loadingContainer: {
     flex: 1,
@@ -237,5 +320,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textSecondary,
     marginTop: 2,
+  },
+  emptySearchContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  emptySearchText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+    marginTop: 16,
+  },
+  emptySearchSubtext: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginTop: 8,
+    textAlign: 'center',
   },
 });

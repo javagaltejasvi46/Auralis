@@ -34,7 +34,7 @@ export default function DashboardScreen({ navigation }: any) {
             <Text style={styles.name}>{therapist?.full_name}</Text>
           </View>
           <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-            <Ionicons name="log-out-outline" size={24} color={COLORS.engineeringOrange} />
+            <Ionicons name="log-out-outline" size={24} color={COLORS.textPrimary} />
           </TouchableOpacity>
         </View>
 
