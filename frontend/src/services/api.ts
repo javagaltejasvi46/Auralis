@@ -3,7 +3,7 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_ENDPOINTS } from '../config';
-import { AuthResponse, Therapist, Patient, Session } from '../types';
+import { AuthResponse, Therapist, Patient, Session, SearchResult, SearchResponse } from '../types';
 
 const TOKEN_KEY = '@auralis_token';
 
@@ -116,6 +116,10 @@ export const patientAPI = {
   
   getById: async (id: number, includeSessions: boolean = true): Promise<{ patient: Patient }> => {
     return await apiRequest(`${API_ENDPOINTS.patients}${id}?include_sessions=${includeSessions}`);
+  },
+  
+  search: async (query: string): Promise<SearchResponse> => {
+    return await apiRequest(`${API_ENDPOINTS.patients}search?q=${encodeURIComponent(query)}`);
   },
   
   create: async (data: Partial<Patient>) => {

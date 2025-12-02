@@ -61,6 +61,26 @@ export interface AuthResponse {
   therapist: Therapist;
 }
 
+export interface MatchPosition {
+  start: number;
+  end: number;
+}
+
+export interface SearchResult {
+  patient: Patient;
+  relevance_score: number;
+  match_field: 'patient_id' | 'name' | 'phone';
+  match_positions: MatchPosition[];
+}
+
+export interface SearchResponse {
+  success: boolean;
+  query: string;
+  query_type: string;
+  count: number;
+  results: SearchResult[];
+}
+
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;

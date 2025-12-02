@@ -1,13 +1,21 @@
 """
 Patient management routes
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from models import Patient, Therapist, get_db
 from auth import get_current_therapist
+from search_utils import (
+    QueryType, 
+    detect_query_type, 
+    normalize_phone, 
+    calculate_relevance,
+    fuzzy_match
+)
 import uuid
 
 router = APIRouter(prefix="/patients", tags=["Patients"])
@@ -108,6 +116,56 @@ async def get_patients(
         "count": len(patients),
         "patients": [p.to_dict() for p in patients]
     }
+
+@router.get("/search", response_model=dict)
+async def search_patients(
+    q: str = Query(..., min_length=2, description="Search query (min 2 characters)"),
+    current_therapist: Therapist = Depends(get_current_therapist),
+    db: Session = Depends(get_db)
+):
+    """
+    Search patients by name, phone number, or patient ID.
+    Automatically detects query type and returns results sorted by relevance.
+    """
+    query_type = detect_query_type(q)
+    query_lower = q.lower().strip()
+    
+    # Get all active patients for this therapist
+    patients = db.query(Patient).filter(
+        Patient.therapist_id == current_therapist.id,
+        Patient.is_active == True
+    ).all()
+    
+    results = []
+    
+    for patient in patients:
+        relevance, match_field, match_positions = calculate_relevance(
+            patient_id=patient.patient_id or "",
+            full_name=patient.full_name or "",
+            phone=patient.phone or "",
+            query=q,
+            query_type=query_type
+        )
+        
+        if relevance > 0:
+            results.append({
+                "patient": patient.to_dict(),
+                "relevance_score": relevance,
+                "match_field": match_field,
+                "match_positions": match_positions
+            })
+    
+    # Sort by relevance score (highest first)
+    results.sort(key=lambda x: x["relevance_score"], reverse=True)
+    
+    return {
+        "success": True,
+        "query": q,
+        "query_type": query_type.value,
+        "count": len(results),
+        "results": results
+    }
+
 
 @router.get("/{patient_id}", response_model=dict)
 async def get_patient(
