@@ -53,8 +53,10 @@ export default function PatientListScreen({ navigation }: any) {
         <Ionicons name="person" size={28} color={COLORS.raisinBlack} />
       </View>
       <View style={styles.patientInfo}>
-        <Text style={styles.patientName}>{item.full_name}</Text>
-        <Text style={styles.patientId}>ID: {item.patient_id}</Text>
+        <View style={styles.patientNameRow}>
+          <Text style={styles.patientName}>{item.full_name}</Text>
+          <Text style={styles.patientId}>ID: {item.patient_id}</Text>
+        </View>
         {item.phone && (
           <Text style={styles.patientDetail}>
             <Ionicons name="call" size={12} /> {item.phone}
@@ -222,16 +224,21 @@ const styles = StyleSheet.create({
   patientInfo: {
     flex: 1,
   },
+  patientNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
   patientName: {
     fontSize: 18,
     fontWeight: '600',
     color: COLORS.paleAzure,
-    marginBottom: 4,
   },
   patientId: {
     fontSize: 14,
     color: COLORS.textSecondary,
-    marginBottom: 2,
+    marginLeft: 10,
   },
   patientDetail: {
     fontSize: 12,

@@ -31,7 +31,7 @@ class PromptFormatter:
 
 Highlight urgent keywords with {{RED:keyword}}: suicide, self-harm, kill, hurt myself, violence, abuse, overdose
 
-Keep under 50 words."""
+IMPORTANT: Do NOT mention any dates or times. Keep under 50 words."""
         
         prompt = f"""<|system|>
 {system_instruction}<|end|>
@@ -48,14 +48,14 @@ Summarize the following therapy session:
         """Format prompt for multiple session summarization"""
         system_instruction = """You are a therapy session summarizer. Create a professional therapy summary with these sections:
 
-**Latest Session:** (Summarize the most recent session in 1-2 lines)
+**Latest Session:** (Summarize the most recent session in 1-2 lines - DO NOT include any dates)
 **Chief Complaint:** (main issues across all sessions)
 **Emotional State:** (patient's mood and affect)
 **Risk Assessment:** (use {{RED:text}} for urgent concerns like suicide, self-harm, violence)
 **Intervention:** (therapeutic techniques used)
 **Plan:** (treatment plan in ONE line)
 
-Keep under 50 words total."""
+IMPORTANT: Do NOT mention any dates, times, or session numbers. Keep under 50 words total."""
         
         # Sort sessions by date
         sorted_sessions = sorted(sessions, key=lambda x: x.get('session_date', ''), reverse=True)
@@ -114,7 +114,7 @@ class SummarizationService:
                 model_name=model_name,
                 max_tokens=150,
                 temperature=0.7,
-                timeout=45
+                timeout=120
             )
             
             self.engine = OllamaInferenceEngine(self.config)
@@ -216,7 +216,7 @@ class SummarizationService:
             # Generate
             import time
             start_time = time.time()
-            summary = self.engine.generate_with_timeout(prompt, timeout=45)
+            summary = self.engine.generate_with_timeout(prompt, timeout=180)
             inference_time = time.time() - start_time
             
             self.total_inference_time += inference_time
@@ -232,7 +232,7 @@ class SummarizationService:
                 return self._fallback(transcription, 250)
                 
         except TimeoutError:
-            self.logger.warning("⏱️  Session note generation timeout")
+            self.logger.warning("⏱️  Session note generation timeout (180s)")
             self.fallback_count += 1
             return self._fallback(transcription, 250)
         except Exception as e:
@@ -255,7 +255,7 @@ class SummarizationService:
             # Generate
             import time
             start_time = time.time()
-            summary = self.engine.generate_with_timeout(prompt, timeout=45)
+            summary = self.engine.generate_with_timeout(prompt, timeout=180)
             inference_time = time.time() - start_time
             
             self.total_inference_time += inference_time
@@ -288,7 +288,7 @@ class SummarizationService:
                 }
                 
         except TimeoutError:
-            self.logger.warning("⏱️  Multi-session summarization timeout")
+            self.logger.warning("⏱️  Multi-session summarization timeout (180s)")
             self.fallback_count += 1
             combined = self._build_combined_text(sessions)
             return {

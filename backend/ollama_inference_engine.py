@@ -24,7 +24,7 @@ class OllamaConfig:
     top_k: int = 40
     
     # Performance
-    timeout: int = 45  # seconds
+    timeout: int = 120  # seconds (increased for slower hardware)
 
 
 class OllamaInferenceEngine:
