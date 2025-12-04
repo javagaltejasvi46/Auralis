@@ -768,10 +768,14 @@ async def export_patient_pdf_with_edits(
         
         # Convert markdown to HTML first
         # Convert **Section:** content to bold section with line break after
-        # This captures content until the next **Section:** or end of text
-        text = re.sub(r'\*\*([^*]+):\*\*\s*((?:(?!\*\*[^*]+:\*\*).)+)', 
-                     lambda m: f'<b>{m.group(1)}:</b> {m.group(2).strip()}<br/><br/>', 
-                     text, flags=re.DOTALL)
+        # Match pattern: **Text:** followed by content (non-greedy), stopping before next ** or end
+        # Using non-greedy match with lookahead to stop at next section
+        text = re.sub(
+            r'\*\*([^*]+?):\*\*\s*(.+?)(?=\*\*[^*]+?:\*\*|$)', 
+            lambda m: f'<b>{m.group(1)}:</b> {m.group(2).strip()}<br/><br/>', 
+            text, 
+            flags=re.DOTALL
+        )
         
         # Convert remaining **text** to bold
         text = re.sub(r'\*\*([^*]+)\*\*', r'<b>\1</b>', text)

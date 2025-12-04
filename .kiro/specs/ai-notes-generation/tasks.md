@@ -1,0 +1,189 @@
+# Implementation Plan
+
+- [x] 1. Set Up Ollama and Phi-3-Mini
+  - [x] 1.1 Install and configure Ollama
+    - Install Ollama on development machine
+    - Pull phi3:mini model
+    - Start Ollama server on port 11434
+    - Verify model is loaded and accessible
+    - _Requirements: 1.1, 8.3_
+
+- [x] 2. Create Summarization Service
+  - [x] 2.1 Create summarization_service.py
+    - Initialize Ollama client with base URL
+    - Configure model parameters (max_tokens, temperature, timeout)
+    - Implement connection health check
+    - _Requirements: 1.1, 8.3_
+  - [x] 2.2 Implement prompt engineering
+    - Create clinical notes prompt template
+    - Include Phi-3 chat format (<|system|>, <|user|>, <|assistant|>)
+    - Specify output structure (Chief Complaint, Emotional State, Risk, Intervention, Progress, Plan)
+    - Add risk keyword highlighting instructions
+    - Add word limit instructions (50 words per section)
+    - _Requirements: 1.3, 1.4, 1.5, 6.1, 6.2, 6.3_
+  - [x] 2.3 Implement generate_session_notes method
+    - Format prompt with transcription, session number, and date
+    - Send request to Ollama API
+    - Parse response and extract notes
+    - Handle timeouts (30 seconds)
+    - Handle Ollama errors
+    - Return formatted notes
+    - _Requirements: 1.1, 1.2, 1.3, 7.1, 7.2_
+  - [x]* 2.4 Write property test for notes structure
+    - **Property 1: Notes Structure Completeness**
+    - **Validates: Requirements 1.3, 1.5**
+  - [x]* 2.5 Write property test for generation time
+    - **Property 3: Generation Time Limit**
+    - **Validates: Requirements 1.2, 8.1, 8.2**
+
+- [x] 3. Implement Risk Keyword Detection
+  - [x] 3.1 Create risk keyword list
+    - Define list of risk keywords (suicide, self-harm, violence, abuse, overdose, etc.)
+    - Make list configurable
+    - _Requirements: 2.1, 2.4_
+  - [x] 3.2 Implement detect_risk_keywords method
+    - Use case-insensitive regex matching
+    - Replace keywords with {{RED:keyword}} format
+    - Handle multiple occurrences
+    - Preserve original text structure
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+  - [x]* 3.3 Write property test for risk keyword highlighting
+    - **Property 2: Risk Keyword Highlighting**
+    - **Validates: Requirements 2.1, 2.2, 2.3**
+
+- [x] 4. Checkpoint - Verify AI generation works
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 5. Create Notes Router
+  - [x] 5.1 Create notes_router.py with generate notes endpoint
+    - POST /notes/{session_id}/generate-notes endpoint
+    - Verify session exists and belongs to therapist
+    - Check if notes already exist (unless regenerate=true)
+    - Get transcription from session
+    - Call summarization service
+    - Apply risk keyword highlighting
+    - Update session with generated notes
+    - Set is_ai_generated=true and notes_generated_at timestamp
+    - Return generated notes with metadata
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.1, 5.1, 5.4_
+  - [x]* 5.2 Write property test for metadata flags
+    - **Property 4: Metadata Flag Consistency**
+    - **Validates: Requirements 5.1, 5.4**
+  - [x] 5.2 Create update notes endpoint
+    - PUT /notes/{session_id}/notes endpoint
+    - Verify session ownership
+    - Update notes field
+    - Update metadata flags (edited_from_ai, notes_last_edited_at)
+    - Preserve is_ai_generated flag
+    - Return updated session
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 5.2, 5.3, 5.5_
+  - [x]* 5.3 Write property test for edit tracking
+    - **Property 5: Edit Tracking**
+    - **Validates: Requirements 3.3, 3.4, 5.3, 5.5**
+  - [x] 5.3 Create get session notes endpoint
+    - GET /notes/{session_id} endpoint
+    - Verify session ownership
+    - Return session with all notes metadata
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
+
+- [x] 6. Implement Regeneration Support
+  - [x] 6.1 Add regeneration logic to generate notes endpoint
+    - Check regenerate flag in request
+    - If true, replace existing notes
+    - Reset edited_from_ai flag to false
+    - Update notes_generated_at timestamp
+    - _Requirements: 4.1, 4.2, 4.3, 4.4_
+  - [x]* 6.2 Write property test for regeneration
+    - **Property 6: Regeneration Replaces Notes**
+    - **Validates: Requirements 4.2, 4.3, 4.4**
+
+- [x] 7. Implement Error Handling
+  - [x] 7.1 Add comprehensive error handling to summarization service
+    - Handle Ollama connection errors
+    - Handle timeout errors (30 seconds)
+    - Handle model errors
+    - Handle empty transcription
+    - Log errors for debugging
+    - Preserve existing notes on failure
+    - _Requirements: 7.1, 7.2, 7.3, 7.4_
+  - [x]* 7.2 Write property test for error handling
+    - **Property 8: Error Preserves Existing Notes**
+    - **Validates: Requirements 4.5, 7.4**
+
+- [x] 8. Checkpoint - Verify error handling and regeneration
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 9. Create Frontend Notes Service
+  - [x] 9.1 Create NotesService in frontend/src/services/api.ts
+    - Implement generateNotes() method
+    - Implement updateNotes() method
+    - Implement getSessionNotes() method
+    - Handle API errors
+    - _Requirements: 1.1, 3.1, 4.1_
+
+- [x] 10. Add Notes Generation to Session Detail Screen
+  - [x] 10.1 Add generate notes button to SessionDetailScreen
+    - Show "Generate AI Notes" button if no notes exist
+    - Show loading state during generation
+    - Display generated notes with formatting
+    - Show AI-generated badge
+    - Handle generation errors with retry option
+    - _Requirements: 1.1, 1.2, 1.6, 5.1_
+
+- [x] 11. Implement Notes Editor
+  - [x] 11.1 Create notes editor component
+    - Text input for editing notes
+    - Preserve markdown formatting (**bold**, {{RED:text}})
+    - Save button
+    - Cancel button
+    - Show loading state during save
+    - Handle save errors
+    - _Requirements: 3.1, 3.2, 3.5_
+  - [x]* 11.2 Write property test for markdown preservation
+    - **Property 7: Markdown Formatting Preservation**
+    - **Validates: Requirements 3.2, 1.4**
+
+- [x] 12. Add Regenerate Functionality
+  - [x] 12.1 Add regenerate button to notes editor
+    - Show "Regenerate" button for AI-generated notes
+    - Confirm before regenerating
+    - Call generate notes with regenerate=true
+    - Replace existing notes with new generation
+    - Show loading state
+    - Handle errors
+    - _Requirements: 4.1, 4.2, 4.3_
+
+- [x] 13. Implement Risk Keyword Display
+  - [x] 13.1 Add risk keyword rendering to notes display
+    - Parse {{RED:text}} format
+    - Render in red color
+    - Preserve formatting in edit mode
+    - Show visual indicator for risk keywords
+    - _Requirements: 2.2, 2.3, 2.5_
+
+- [x] 14. Add AI Metadata Display
+  - [x] 14.1 Show AI generation metadata in UI
+    - Display "AI Generated" badge
+    - Show generation timestamp
+    - Show "Edited" indicator if edited_from_ai is true
+    - Show last edit timestamp
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
+
+- [x] 15. Optimize Performance
+  - [x] 15.1 Implement performance optimizations
+    - Cache Ollama connection
+    - Use async HTTP requests
+    - Pre-compile regex patterns
+    - Monitor generation time
+    - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
+
+- [x] 16. Add Monitoring and Logging
+  - [x] 16.1 Implement logging and monitoring
+    - Log generation requests
+    - Log generation time
+    - Log errors and failures
+    - Track success rate
+    - _Requirements: 7.5_
+
+- [x] 17. Final Checkpoint - Complete integration testing
+  - Ensure all tests pass, ask the user if questions arise.
