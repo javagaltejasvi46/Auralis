@@ -60,7 +60,7 @@ class Therapist(Base):
         }
 
 class Patient(Base):
-    """Patient profile"""
+    """Patient profile with comprehensive psychotherapy report fields"""
     __tablename__ = "patients"
     
     id = Column(Integer, primary_key=True, index=True)
@@ -73,11 +73,72 @@ class Patient(Base):
     email = Column(String)
     address = Column(Text)
     emergency_contact = Column(String)
-    medical_history = Column(Text)
+    medical_history = Column(Text)  # Legacy field - kept for backward compatibility
     notes = Column(Text)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Patient Information (Extended)
+    age = Column(Integer)
+    residence = Column(Text)
+    education = Column(String)
+    occupation = Column(String)
+    marital_status = Column(String)
+    date_of_assessment = Column(DateTime)
+    
+    # Medical History (Detailed)
+    current_medical_conditions = Column(Text)
+    past_medical_conditions = Column(Text)
+    current_medications = Column(Text)
+    allergies = Column(Text)
+    hospitalizations = Column(Text)
+    
+    # Psychiatric History
+    previous_psychiatric_diagnoses = Column(Text)
+    previous_psychiatric_treatment = Column(Text)
+    previous_psychiatric_hospitalizations = Column(Text)
+    suicide_self_harm_history = Column(Text)
+    substance_use_history = Column(Text)
+    
+    # Family History
+    psychiatric_illness_family = Column(Text)
+    medical_illness_family = Column(Text)
+    family_dynamics = Column(Text)
+    significant_family_events = Column(Text)
+    
+    # Social History
+    childhood_developmental_history = Column(Text)
+    educational_history = Column(Text)
+    occupational_history = Column(Text)
+    relationship_history = Column(Text)
+    social_support_system = Column(Text)
+    living_situation = Column(Text)
+    cultural_religious_background = Column(Text)
+    
+    # Clinical Assessment - Chief Complaints
+    chief_complaint = Column(Text)
+    chief_complaint_description = Column(Text)
+    
+    # Course of Illness
+    illness_onset = Column(Text)
+    illness_progression = Column(Text)
+    previous_episodes = Column(Text)
+    triggers = Column(Text)
+    impact_on_functioning = Column(Text)
+    
+    # Baseline Assessment - Mental Status Examination
+    mse_appearance = Column(Text)
+    mse_behavior = Column(Text)
+    mse_speech = Column(Text)
+    mse_mood = Column(Text)
+    mse_affect = Column(Text)
+    mse_thought_process = Column(Text)
+    mse_thought_content = Column(Text)
+    mse_perception = Column(Text)
+    mse_cognition = Column(Text)
+    mse_insight = Column(Text)
+    mse_judgment = Column(Text)
     
     # Relationships
     therapist = relationship("Therapist", back_populates="patients")
@@ -99,7 +160,68 @@ class Patient(Base):
             "is_active": self.is_active,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-            "session_count": len(self.sessions) if self.sessions else 0
+            "session_count": len(self.sessions) if self.sessions else 0,
+            
+            # Patient Information (Extended)
+            "age": self.age,
+            "residence": self.residence,
+            "education": self.education,
+            "occupation": self.occupation,
+            "marital_status": self.marital_status,
+            "date_of_assessment": self.date_of_assessment.isoformat() if self.date_of_assessment else None,
+            
+            # Medical History (Detailed)
+            "current_medical_conditions": self.current_medical_conditions,
+            "past_medical_conditions": self.past_medical_conditions,
+            "current_medications": self.current_medications,
+            "allergies": self.allergies,
+            "hospitalizations": self.hospitalizations,
+            
+            # Psychiatric History
+            "previous_psychiatric_diagnoses": self.previous_psychiatric_diagnoses,
+            "previous_psychiatric_treatment": self.previous_psychiatric_treatment,
+            "previous_psychiatric_hospitalizations": self.previous_psychiatric_hospitalizations,
+            "suicide_self_harm_history": self.suicide_self_harm_history,
+            "substance_use_history": self.substance_use_history,
+            
+            # Family History
+            "psychiatric_illness_family": self.psychiatric_illness_family,
+            "medical_illness_family": self.medical_illness_family,
+            "family_dynamics": self.family_dynamics,
+            "significant_family_events": self.significant_family_events,
+            
+            # Social History
+            "childhood_developmental_history": self.childhood_developmental_history,
+            "educational_history": self.educational_history,
+            "occupational_history": self.occupational_history,
+            "relationship_history": self.relationship_history,
+            "social_support_system": self.social_support_system,
+            "living_situation": self.living_situation,
+            "cultural_religious_background": self.cultural_religious_background,
+            
+            # Clinical Assessment
+            "chief_complaint": self.chief_complaint,
+            "chief_complaint_description": self.chief_complaint_description,
+            
+            # Course of Illness
+            "illness_onset": self.illness_onset,
+            "illness_progression": self.illness_progression,
+            "previous_episodes": self.previous_episodes,
+            "triggers": self.triggers,
+            "impact_on_functioning": self.impact_on_functioning,
+            
+            # Mental Status Examination
+            "mse_appearance": self.mse_appearance,
+            "mse_behavior": self.mse_behavior,
+            "mse_speech": self.mse_speech,
+            "mse_mood": self.mse_mood,
+            "mse_affect": self.mse_affect,
+            "mse_thought_process": self.mse_thought_process,
+            "mse_thought_content": self.mse_thought_content,
+            "mse_perception": self.mse_perception,
+            "mse_cognition": self.mse_cognition,
+            "mse_insight": self.mse_insight,
+            "mse_judgment": self.mse_judgment,
         }
         if include_sessions:
             data["sessions"] = [s.to_dict() for s in self.sessions]

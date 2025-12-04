@@ -47,3 +47,6 @@ nltk>=3.8.0
 
 # Utilities
 requests>=2.31.0
+
+# PDF Generation
+reportlab>=4.0.0

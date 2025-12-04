@@ -3,7 +3,7 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_ENDPOINTS } from '../config';
-import { AuthResponse, Therapist, Patient, Session, SearchResult, SearchResponse } from '../types';
+import { AuthResponse, Therapist, Patient, Session, SearchResult, SearchResponse, ReportDataResponse, ExportReportData } from '../types';
 
 const TOKEN_KEY = '@auralis_token';
 
@@ -29,9 +29,9 @@ const apiRequest = async (
   const token = await getToken();
   console.log('🔑 Token retrieved:', token ? `${token.substring(0, 20)}...` : 'NULL');
   
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   };
   
   if (token) {
@@ -140,6 +140,32 @@ export const patientAPI = {
     return await apiRequest(`${API_ENDPOINTS.patients}${id}`, {
       method: 'DELETE',
     });
+  },
+  
+  getReportData: async (id: number): Promise<ReportDataResponse> => {
+    return await apiRequest(`${API_ENDPOINTS.patients}${id}/report-data`);
+  },
+  
+  getOverallSummary: async (id: number) => {
+    return await apiRequest(`${API_ENDPOINTS.patients}${id}/overall-summary`);
+  },
+  
+  exportPdf: async (id: number, reportData?: ExportReportData): Promise<Blob> => {
+    const token = await getToken();
+    const response = await fetch(`${API_ENDPOINTS.patients}${id}/export-pdf`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(reportData || {}),
+    });
+    
+    if (!response.ok) {
+      throw new Error('PDF export failed');
+    }
+    
+    return await response.blob();
   },
 };
 
