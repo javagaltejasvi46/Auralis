@@ -24,58 +24,73 @@ print("👥 Speaker diarization enabled - Identifies different speakers")
 
 print("🎤 Real-time transcription server starting...")
 
+def is_question(text):
+    """Check if text is likely a question"""
+    text = text.strip().lower()
+    question_words = ['how', 'what', 'why', 'when', 'where', 'who', 'which', 'do', 'does', 'did', 'is', 'are', 'was', 'were', 'can', 'could', 'would', 'should', 'have', 'has', 'tell']
+    return text.endswith('?') or any(text.startswith(w) for w in question_words)
+
 def transcribe_audio_file(audio_path, language=None):
     """Transcribe audio file using Faster-Whisper with 2-speaker diarization (Therapist/Patient)"""
     try:
-        print(f"🎯 Transcribing with Faster-Whisper (2-speaker mode: Therapist & Patient)...")
-        
-        # Auto-detect language and translate to English
-        print("🎯 Detecting language and translating to English...")
+        print(f"🎯 Transcribing with Faster-Whisper (2-speaker: Therapist & Patient)...")
+        print("🎯 First speaker = Therapist, alternating on silence gaps...")
         
         segments, info = model.transcribe(
             audio_path,
             language=None,  # Auto-detect any language
-            beam_size=3,  # Reduced for speed
-            vad_filter=False,  # Disable VAD (requires onnxruntime)
-            task='translate',  # TRANSLATE to English (not transcribe)
+            beam_size=3,
+            vad_filter=False,
+            task='translate',  # TRANSLATE to English
             condition_on_previous_text=False,
             temperature=0.0,
-            word_timestamps=True  # For speaker diarization
+            word_timestamps=True
         )
         
-        # Process segments with 2-speaker detection (Therapist & Patient only)
-        text_parts = []
-        current_speaker = 0  # 0 = Therapist, 1 = Patient (alternating)
-        last_end_time = 0
-        segment_count = 0
+        # Collect all segments first
+        all_segments = list(segments)
         
-        speaker_labels = ["Therapist", "Patient"]
-        
-        for segment in segments:
-            segment_count += 1
-            silence_gap = segment.start - last_end_time
-            
-            # Detect speaker change based on silence gap (>1.5s suggests turn change)
-            if silence_gap > 1.5 and last_end_time > 0:
-                # Toggle between Therapist (0) and Patient (1)
-                current_speaker = 1 - current_speaker
-            
-            # Add speaker label with text
-            speaker_name = speaker_labels[current_speaker]
-            text_parts.append(f"{speaker_name}: {segment.text.strip()}")
-            
-            last_end_time = segment.end
-        
-        # Join with newlines for clear speaker separation
-        result = "\n".join(text_parts)
-        
-        # If no segments, return empty
-        if not result.strip():
+        if not all_segments:
             return "(No speech detected)"
         
-        print(f"📝 Translation (English): {result[:200]}...")
+        # Process with simple alternating speaker detection
+        text_parts = []
+        speaker_labels = ["Therapist", "Patient"]
+        current_speaker = 0  # Start with Therapist
+        last_end_time = 0
+        
+        for i, seg in enumerate(all_segments):
+            silence_gap = seg.start - last_end_time if last_end_time > 0 else 0
+            
+            # Detect speaker change based on:
+            # 1. Silence gap > 0.5 seconds (conversation turn)
+            # 2. Previous segment was a question (therapist asks, patient answers)
+            if i > 0 and silence_gap > 0.5:
+                # Toggle speaker on silence gap
+                current_speaker = 1 - current_speaker
+                print(f"  🔄 Speaker change detected (gap: {silence_gap:.2f}s) → {speaker_labels[current_speaker]}")
+            
+            speaker_name = speaker_labels[current_speaker]
+            text_parts.append(f"{speaker_name}: {seg.text.strip()}")
+            last_end_time = seg.end
+        
+        # Merge consecutive same-speaker segments
+        merged_parts = []
+        for part in text_parts:
+            if ': ' not in part:
+                continue
+            speaker, text = part.split(': ', 1)
+            if merged_parts and merged_parts[-1].startswith(speaker + ':'):
+                # Same speaker, append text
+                merged_parts[-1] += ' ' + text
+            else:
+                merged_parts.append(part)
+        
+        result = "\n".join(merged_parts)
+        
+        print(f"📝 Translation (English):\n{result}")
         print(f"📊 Detected language: {info.language} (confidence: {info.language_probability:.2f})")
-        print(f"👥 2-speaker diarization: Therapist & Patient ({segment_count} segments)")
+        print(f"👥 2-speaker diarization: {len(all_segments)} segments → {len(merged_parts)} speaker turns")
         
         return result
     except Exception as e:
