@@ -3,7 +3,7 @@ from typing import Optional
 
 class Settings:
     # Network Configuration
-    LOCAL_IP: str = "10.163.167.160"
+    LOCAL_IP: str = "10.157.95.160"
     # API Configuration
     API_TITLE: str = "Audio Recording API"
     API_VERSION: str = "1.0.0"
