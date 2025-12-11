@@ -1,10 +1,27 @@
 /**
  * App Configuration
+ * 
+ * This configuration supports multiple methods for IP detection:
+ * 1. Environment variables (for production)
+ * 2. Auto-detected IP (updated by backend auto_config.py)
+ * 3. Manual override (for development)
  */
 
-// Update this with your machine's IP address
-export const API_BASE_URL = 'http://10.157.95.160:8002';
-export const WS_BASE_URL = 'ws://10.157.95.160:8003';
+// Get IP from environment or use auto-detected IP
+const getServerIP = (): string => {
+  // Method 1: Check if running in Expo and use environment variable
+  if (process.env.EXPO_PUBLIC_API_HOST) {
+    return process.env.EXPO_PUBLIC_API_HOST;
+  }
+  
+  // Method 2: Use auto-detected IP (updated by backend auto_config.py)
+  return '192.168.0.109';  // This gets updated automatically by auto_config.py
+};
+
+const SERVER_IP = getServerIP();
+
+export const API_BASE_URL = `http://${SERVER_IP}:8002`;
+export const WS_BASE_URL = `ws://${SERVER_IP}:8003`;
 
 export const API_ENDPOINTS = {
   // Auth

@@ -1,9 +1,10 @@
 /**
- * API Service Layer
+ * API Service Layer with Dynamic Server Discovery
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_ENDPOINTS } from '../config';
 import { AuthResponse, Therapist, Patient, Session, SearchResult, SearchResponse, ReportDataResponse, ExportReportData } from '../types';
+import ConnectionManager from './ConnectionManager';
 
 const TOKEN_KEY = '@auralis_token';
 
@@ -20,12 +21,25 @@ export const removeToken = async () => {
   await AsyncStorage.removeItem(TOKEN_KEY);
 };
 
-// API request helper
+// Get connection manager instance
+const connectionManager = ConnectionManager.getInstance();
+
+// Dynamic URL builder
+const buildURL = (endpoint: string): string => {
+  const baseURL = connectionManager.getAPIBaseURL();
+  // Replace the hardcoded base URL in endpoints with the dynamic one
+  return endpoint.replace(/http:\/\/[^\/]+/, baseURL);
+};
+
+// API request helper with automatic server discovery
 const apiRequest = async (
-  url: string,
-  options: RequestInit = {}
+  endpoint: string,
+  options: RequestInit = {},
+  retryCount: number = 0
 ): Promise<any> => {
+  const url = buildURL(endpoint);
   console.log('🌐 API Request to:', url);
+  
   const token = await getToken();
   console.log('🔑 Token retrieved:', token ? `${token.substring(0, 20)}...` : 'NULL');
   
@@ -41,21 +55,39 @@ const apiRequest = async (
     console.log('⚠️ No token available for request');
   }
   
-  console.log('📤 Sending request...');
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
-  
-  console.log('📥 Response status:', response.status);
-  
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Request failed' }));
-    console.log('❌ Request failed:', error);
-    throw new Error(error.detail || 'Request failed');
+  try {
+    console.log('📤 Sending request...');
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      timeout: 10000, // 10 second timeout
+    });
+    
+    console.log('📥 Response status:', response.status);
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Request failed' }));
+      console.log('❌ Request failed:', error);
+      throw new Error(error.detail || 'Request failed');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.log('🔌 Network error:', error);
+    
+    // If this is a network error and we haven't retried yet, try to rediscover the server
+    if (retryCount === 0 && (error.message.includes('Network') || error.message.includes('fetch'))) {
+      console.log('🔄 Network error detected, attempting server rediscovery...');
+      
+      const reconnected = await connectionManager.retry();
+      if (reconnected) {
+        console.log('✅ Server rediscovered, retrying request...');
+        return await apiRequest(endpoint, options, retryCount + 1);
+      }
+    }
+    
+    throw error;
   }
-  
-  return await response.json();
 };
 
 // Auth API

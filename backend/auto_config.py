@@ -6,21 +6,80 @@ Run this on startup or when network changes
 import socket
 import json
 import os
+import subprocess
+import platform
 from pathlib import Path
 
 def get_local_ip():
-    """Get the local IP address of the machine"""
+    """Get the local IP address of the machine using multiple methods"""
+    methods = [
+        _get_ip_socket_method,
+        _get_ip_hostname_method,
+        _get_ip_ifconfig_method,
+        _get_ip_ipconfig_method
+    ]
+    
+    for method in methods:
+        try:
+            ip = method()
+            if ip and ip != "127.0.0.1" and ip != "localhost":
+                print(f"✅ IP detected using {method.__name__}: {ip}")
+                return ip
+        except Exception as e:
+            print(f"⚠️  {method.__name__} failed: {e}")
+            continue
+    
+    print("❌ All IP detection methods failed, using localhost")
+    return "localhost"
+
+def _get_ip_socket_method():
+    """Method 1: Socket connection to external address"""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    local_ip = s.getsockname()[0]
+    s.close()
+    return local_ip
+
+def _get_ip_hostname_method():
+    """Method 2: Using hostname resolution"""
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    return local_ip
+
+def _get_ip_ifconfig_method():
+    """Method 3: Using ifconfig (Linux/Mac)"""
+    if platform.system() in ["Linux", "Darwin"]:
+        result = subprocess.run(['ifconfig'], capture_output=True, text=True)
+        lines = result.stdout.split('\n')
+        for line in lines:
+            if 'inet ' in line and '127.0.0.1' not in line and 'inet 169.254' not in line:
+                parts = line.strip().split()
+                for i, part in enumerate(parts):
+                    if part == 'inet' and i + 1 < len(parts):
+                        ip = parts[i + 1].split('/')[0]  # Remove subnet mask
+                        if _is_valid_ip(ip):
+                            return ip
+    return None
+
+def _get_ip_ipconfig_method():
+    """Method 4: Using ipconfig (Windows)"""
+    if platform.system() == "Windows":
+        result = subprocess.run(['ipconfig'], capture_output=True, text=True)
+        lines = result.stdout.split('\n')
+        for line in lines:
+            if 'IPv4 Address' in line:
+                ip = line.split(':')[-1].strip()
+                if _is_valid_ip(ip) and not ip.startswith('169.254'):
+                    return ip
+    return None
+
+def _is_valid_ip(ip):
+    """Check if IP address is valid"""
     try:
-        # Create a socket to determine the local IP
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        # Connect to an external address (doesn't actually send data)
-        s.connect(("8.8.8.8", 80))
-        local_ip = s.getsockname()[0]
-        s.close()
-        return local_ip
-    except Exception as e:
-        print(f"❌ Error getting local IP: {e}")
-        return "localhost"
+        parts = ip.split('.')
+        return len(parts) == 4 and all(0 <= int(part) <= 255 for part in parts)
+    except:
+        return False
 
 def update_frontend_config(ip_address):
     """Update frontend config.ts with new IP address"""
@@ -35,17 +94,12 @@ def update_frontend_config(ip_address):
         with open(frontend_config_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # Replace the IP address in API_BASE_URL and WS_BASE_URL
+        # Replace the IP address in the return statement
         import re
-        # Match pattern like: export const API_BASE_URL = 'http://xxx.xxx.xxx.xxx:8002';
-        pattern = r"(export const API_BASE_URL = 'http://)[\d.]+(:8002';)"
+        # Match pattern like: return '192.168.1.100';  // This gets updated automatically by auto_config.py
+        pattern = r"(return ')[\d.]+(';\s*//\s*This gets updated automatically by auto_config\.py)"
         replacement = rf"\g<1>{ip_address}\g<2>"
         new_content = re.sub(pattern, replacement, content)
-        
-        # Update WS_BASE_URL (WebSocket URL)
-        pattern_ws = r"(export const WS_BASE_URL = 'ws://)[\d.]+(:8003';)"
-        replacement_ws = rf"\g<1>{ip_address}\g<2>"
-        new_content = re.sub(pattern_ws, replacement_ws, new_content)
         
         # Write back
         with open(frontend_config_path, 'w', encoding='utf-8') as f:

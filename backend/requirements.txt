@@ -50,3 +50,6 @@ requests>=2.31.0
 
 # PDF Generation
 reportlab>=4.0.0
+
+# QR Code Generation
+qrcode[pil]==7.4.2

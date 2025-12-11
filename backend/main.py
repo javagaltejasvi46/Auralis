@@ -4,7 +4,8 @@ Medical Voice Transcription with Authentication & Patient Management
 """
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import os
@@ -29,7 +30,16 @@ except Exception as e:
 
 # Auto-configure network on startup
 from auto_config import configure_network
+from network_broadcaster import start_broadcaster
+from qr_generator import print_connection_info, generate_connection_qr
+
 LOCAL_IP = configure_network()
+
+# Start network broadcaster for auto-discovery
+start_broadcaster()
+
+# Print connection info for manual setup
+print_connection_info()
 
 app = FastAPI(
     title="AURALIS API",
@@ -66,12 +76,33 @@ async def root():
         "version": "2.0.0",
         "features": [
             "Authentication",
-            "Patient Management",
+            "Patient Management", 
             "Session Management",
             "Audio Transcription",
             "Translation"
         ]
     }
+
+@app.get("/connection", response_class=HTMLResponse)
+async def connection_page():
+    """Serve the connection page with QR code"""
+    try:
+        with open("backend/templates/connection.html", "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError:
+        return HTMLResponse(content="""
+        <html><body>
+        <h1>Auralis Connection</h1>
+        <p>Server IP: {}</p>
+        <p>API URL: http://{}:8002</p>
+        <p>WebSocket: ws://{}:8003</p>
+        </body></html>
+        """.format(LOCAL_IP, LOCAL_IP, LOCAL_IP))
+
+@app.get("/connection-info")
+async def get_connection_info():
+    """Get connection information and QR code"""
+    return generate_connection_qr()
 
 @app.get("/health")
 async def health_check():

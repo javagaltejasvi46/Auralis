@@ -27,22 +27,26 @@ Auralis is a complete medical transcription solution designed for mental health 
 - FFmpeg
 - Expo Go app (for mobile testing)
 
-### 1. Backend Setup
+### 1. Easy Startup (Recommended)
 
+**Windows:**
+```bash
+# Double-click or run:
+start_auralis.bat
+```
+
+**Linux/Mac:**
+```bash
+# Make executable and run:
+chmod +x start_auralis.sh
+./start_auralis.sh
+```
+
+**Manual Setup:**
 ```bash
 cd backend
 pip install -r requirements.txt
-python main.py  # Terminal 1
-python transcription_server.py  # Terminal 2
-```
-
-Or use startup scripts:
-```bash
-# Windows
-start_backend.bat
-
-# PowerShell
-.\start_backend.ps1
+python startup.py  # This handles everything automatically
 ```
 
 ### 2. Frontend Setup
@@ -55,8 +59,30 @@ npx expo start
 
 Scan QR code with Expo Go app on your phone.
 
-### 3. Configure Gemini API
+### 3. Automatic Network Configuration
 
+The system now **automatically detects your IP address** and configures itself:
+
+- ✅ **No manual IP configuration needed**
+- ✅ **Works on any device/network**
+- ✅ **Automatic server discovery in mobile app**
+- ✅ **Fallback to manual configuration if needed**
+
+### 4. Configure AI Models (Optional)
+
+**For Phi-3-Mini (Recommended - Free & Local):**
+```bash
+# Install Ollama
+curl https://ollama.ai/install.sh | sh
+
+# Pull Phi-3-Mini model
+ollama pull phi3:mini
+
+# Start Ollama (runs automatically with startup.py)
+ollama serve
+```
+
+**For Gemini (Alternative):**
 1. Get API key from: https://makersuite.google.com/app/apikey
 2. Update `backend/summarization_service.py` line 6:
    ```python
@@ -214,20 +240,68 @@ eas build --platform ios
 
 ## Troubleshooting
 
+### Network Connection Issues
+
+**Mobile App Can't Connect:**
+1. **Automatic Discovery**: The app will automatically try to find the server
+2. **Manual Connection**: Tap the connection status → "Connect Manually" → Enter server IP
+3. **Check Same Network**: Ensure phone and computer are on the same WiFi
+4. **Firewall**: Temporarily disable firewall to test
+
+**Find Your Server IP:**
+```bash
+# Windows
+ipconfig
+
+# Linux/Mac
+ifconfig
+# or
+ip addr show
+```
+
+**Common IP Ranges:**
+- Home networks: `192.168.1.x` or `192.168.0.x`
+- Corporate: `10.x.x.x` or `172.16.x.x`
+- Mobile hotspot: `192.168.43.x`
+
 ### Backend Issues
-- **Port in use**: Kill process or change port
+- **Port in use**: Kill process or change port in startup.py
 - **Whisper model**: Will download automatically (~1GB)
-- **Gemini errors**: Check API key validity
+- **Ollama not found**: Install Ollama and run `ollama pull phi3:mini`
+- **Dependencies missing**: Run `pip install -r requirements.txt`
 
 ### Frontend Issues
-- **Can't connect**: Verify IP address in config
+- **Connection Status**: Check the connection indicator in the app
 - **Audio not working**: Check microphone permissions
-- **WebSocket fails**: Ensure backend is running
+- **Auto-discovery fails**: Use manual IP entry
+- **WebSocket fails**: Ensure transcription server is running (port 8003)
 
-### Network Issues
-- Ensure device and backend on same WiFi
-- Check firewall settings
-- Verify IP address is correct
+### Advanced Troubleshooting
+
+**Reset Network Configuration:**
+```bash
+cd backend
+rm .ip_cache
+python auto_config.py
+```
+
+**Check Server Status:**
+```bash
+# Test API server
+curl http://YOUR_IP:8002/health
+
+# Test WebSocket server
+curl http://YOUR_IP:8003
+```
+
+**Environment Variables (Optional):**
+```bash
+# Set in frontend/.env
+EXPO_PUBLIC_API_HOST=192.168.1.100
+
+# Set in backend/.env
+LOCAL_IP=192.168.1.100
+```
 
 ## Performance
 

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auralis - Mobile Connection</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #F2EFEB 0%, #85A3B3 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(17, 56, 69, 0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #113845;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #85A3B3;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .qr-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #85A3B3;
+        }
+        .qr-code {
+            max-width: 200px;
+            height: auto;
+            margin: 0 auto;
+            display: block;
+        }
+        .connection-info {
+            background: #113845;
+            color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .connection-info h3 {
+            margin: 0 0 15px 0;
+            color: #85A3B3;
+        }
+        .info-item {
+            margin: 8px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .instructions {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .instructions h3 {
+            margin: 0 0 15px 0;
+            color: #113845;
+        }
+        .instructions ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 8px 0;
+            color: #555;
+        }
+        .status {
+            display: inline-block;
+            background: #4ade80;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .refresh-btn {
+            background: #85A3B3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .refresh-btn:hover {
+            background: #113845;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🎤 AURALIS</div>
+        <div class="subtitle">Medical Voice Transcription</div>
+        <div class="status">🟢 Server Online</div>
+        
+        <div class="qr-container">
+            <h3 style="margin: 0 0 15px 0; color: #113845;">📱 Scan to Connect</h3>
+            <img id="qrCode" class="qr-code" alt="Connection QR Code" />
+            <p style="margin: 15px 0 0 0; color: #666; font-size: 12px;">
+                Scan with your mobile app to connect automatically
+            </p>
+        </div>
+        
+        <div class="connection-info">
+            <h3>🌐 Connection Details</h3>
+            <div class="info-item">📍 Server IP: <span id="serverIP"></span></div>
+            <div class="info-item">🔗 API URL: <span id="apiURL"></span></div>
+            <div class="info-item">🎤 WebSocket: <span id="wsURL"></span></div>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 Manual Setup Instructions</h3>
+            <ol>
+                <li>Open the Auralis mobile app</li>
+                <li>Tap the connection status indicator</li>
+                <li>Select "Manual Connection"</li>
+                <li>Enter the Server IP shown above</li>
+                <li>Tap "Connect"</li>
+            </ol>
+        </div>
+        
+        <button class="refresh-btn" onclick="location.reload()">🔄 Refresh Connection Info</button>
+    </div>
+
+    <script>
+        // Load connection info and QR code
+        async function loadConnectionInfo() {
+            try {
+                const response = await fetch('/connection-info');
+                const data = await response.json();
+                
+                // Update connection details
+                document.getElementById('serverIP').textContent = data.connection_info.ip;
+                document.getElementById('apiURL').textContent = data.connection_info.api_url;
+                document.getElementById('wsURL').textContent = data.connection_info.ws_url;
+                
+                // Set QR code image
+                document.getElementById('qrCode').src = 'data:image/png;base64,' + data.qr_image_base64;
+                
+            } catch (error) {
+                console.error('Failed to load connection info:', error);
+                document.querySelector('.status').textContent = '🔴 Connection Error';
+                document.querySelector('.status').style.background = '#ef4444';
+            }
+        }
+        
+        // Load on page load
+        loadConnectionInfo();
+    </script>
+</body>
+</html>

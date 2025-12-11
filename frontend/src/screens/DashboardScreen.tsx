@@ -10,6 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { COLORS, CARD_GLOW_STYLE } from '../config';
+import ConnectionStatus from '../components/ConnectionStatus';
 
 export default function DashboardScreen({ navigation }: any) {
   const { therapist, logout } = useAuth();
@@ -33,9 +34,12 @@ export default function DashboardScreen({ navigation }: any) {
             <Text style={styles.greeting}>Welcome back,</Text>
             <Text style={styles.name}>{therapist?.full_name}</Text>
           </View>
-          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-            <Ionicons name="log-out-outline" size={24} color={COLORS.textPrimary} />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <ConnectionStatus showDetails={true} />
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+              <Ionicons name="log-out-outline" size={24} color={COLORS.textPrimary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Stats Card */}
@@ -117,6 +121,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.paleAzure,
     marginTop: 4,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   logoutButton: {
     padding: 10,
