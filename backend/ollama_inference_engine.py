@@ -18,13 +18,13 @@ class OllamaConfig:
     model_name: str = "phi3:mini"  # or "phi3:medium", "phi3:3.8b"
     
     # Generation parameters
-    max_tokens: int = 150
+    max_tokens: int = 2000  # Increased for comprehensive summaries
     temperature: float = 0.7
     top_p: float = 0.9
     top_k: int = 40
     
     # Performance
-    timeout: int = 120  # seconds (increased for slower hardware)
+    timeout: int = 180  # seconds (increased for longer summaries)
 
 
 class OllamaInferenceEngine:
@@ -159,14 +159,14 @@ class OllamaInferenceEngine:
             self.logger.error(f"Generation failed: {e}")
             raise RuntimeError(f"Text generation failed: {e}")
     
-    def generate_with_timeout(self, prompt: str, timeout: Optional[int] = None) -> str:
+    def generate_with_timeout(self, prompt: str, timeout: Optional[int] = None, max_tokens: Optional[int] = None) -> str:
         """Generate text with timeout (wrapper for compatibility)"""
         original_timeout = self.config.timeout
         if timeout:
             self.config.timeout = timeout
         
         try:
-            result = self.generate(prompt)
+            result = self.generate(prompt, max_tokens=max_tokens)
             return result
         finally:
             self.config.timeout = original_timeout

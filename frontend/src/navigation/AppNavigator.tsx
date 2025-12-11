@@ -12,8 +12,10 @@ import DashboardScreen from '../screens/DashboardScreen';
 import PatientListScreen from '../screens/PatientListScreen';
 import CreatePatientScreen from '../screens/CreatePatientScreen';
 import PatientProfileScreen from '../screens/PatientProfileScreen';
+import EditPatientScreen from '../screens/EditPatientScreen';
 import SessionRecordingScreen from '../screens/SessionRecordingScreen';
 import SessionDetailScreen from '../screens/SessionDetailScreen';
+import ExportReportScreen from '../screens/ExportReportScreen';
 
 const Stack = createStackNavigator();
 
@@ -42,8 +44,10 @@ export default function AppNavigator() {
             <Stack.Screen name="PatientList" component={PatientListScreen} />
             <Stack.Screen name="CreatePatient" component={CreatePatientScreen} />
             <Stack.Screen name="PatientProfile" component={PatientProfileScreen} />
+            <Stack.Screen name="EditPatient" component={EditPatientScreen} />
             <Stack.Screen name="SessionRecording" component={SessionRecordingScreen} />
             <Stack.Screen name="SessionDetail" component={SessionDetailScreen} />
+            <Stack.Screen name="ExportReport" component={ExportReportScreen} />
           </>
         )}
       </Stack.Navigator>

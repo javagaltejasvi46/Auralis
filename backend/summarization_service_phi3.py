@@ -22,23 +22,24 @@ class PromptFormatter:
     @staticmethod
     def format_single_session(transcription: str, notes: str = "") -> str:
         """Format prompt for single session summarization"""
-        system_instruction = """You are a therapy session summarizer. Create concise clinical summaries using this format:
-**Chief Complaint:** [main issue]
-**Emotional State:** [mood]
-**Risk:** [safety concerns - use {{RED:text}} for urgent]
-**Intervention:** [what was done]
-**Plan:** [next steps]
+        system_instruction = """You are a therapy session summarizer. Create comprehensive clinical summaries using this format:
+**Chief Complaint:** [detailed main issue with context]
+**Emotional State:** [mood and emotional observations]
+**Risk:** [safety concerns - use {{RED:text}} for urgent items]
+**Intervention:** [therapeutic techniques and interventions used]
+**Progress:** [observed changes and client responses]
+**Plan:** [detailed next steps and treatment plan]
 
 Highlight urgent keywords with {{RED:keyword}}: suicide, self-harm, kill, hurt myself, violence, abuse, overdose
 
-IMPORTANT: Do NOT mention any dates or times. Keep under 50 words."""
+IMPORTANT: Provide detailed and comprehensive summaries. Include all relevant clinical information."""
         
         prompt = f"""<|system|>
 {system_instruction}<|end|>
 <|user|>
 Summarize the following therapy session:
 
-{transcription[:2000]}<|end|>
+{transcription}<|end|>
 <|assistant|>
 """
         return prompt
@@ -46,28 +47,29 @@ Summarize the following therapy session:
     @staticmethod
     def format_multiple_sessions(sessions: List[Dict]) -> str:
         """Format prompt for multiple session summarization"""
-        system_instruction = """You are a therapy session summarizer. Create a professional therapy summary with these sections:
+        system_instruction = """You are a therapy session summarizer. Create a comprehensive professional therapy summary with these sections:
 
-**Latest Session:** (Summarize the most recent session in 1-2 lines - DO NOT include any dates)
-**Chief Complaint:** (main issues across all sessions)
-**Emotional State:** (patient's mood and affect)
+**Latest Session:** (Detailed summary of the most recent session)
+**Chief Complaint:** (comprehensive main issues across all sessions)
+**Emotional State:** (detailed patient's mood, affect, and emotional patterns)
 **Risk Assessment:** (use {{RED:text}} for urgent concerns like suicide, self-harm, violence)
-**Intervention:** (therapeutic techniques used)
-**Plan:** (treatment plan in ONE line)
+**Intervention:** (all therapeutic techniques and approaches used)
+**Progress:** (observed changes and improvements over sessions)
+**Plan:** (detailed treatment plan and next steps)
 
-IMPORTANT: Do NOT mention any dates, times, or session numbers. Keep under 50 words total."""
+IMPORTANT: Provide comprehensive and detailed summaries. Include all relevant clinical information."""
         
         # Sort sessions by date
         sorted_sessions = sorted(sessions, key=lambda x: x.get('session_date', ''), reverse=True)
         
         # Get latest session
         latest_session = sorted_sessions[0] if sorted_sessions else {}
-        latest_trans = latest_session.get('original_transcription', '')[:1000]
-        latest_notes = latest_session.get('notes', '')[:500]
+        latest_trans = latest_session.get('original_transcription', '')
+        latest_notes = latest_session.get('notes', '')
         
         # Collect all notes
         all_notes = [s.get('notes', '') for s in sorted_sessions if s.get('notes', '')]
-        notes_summary = ' | '.join(all_notes[:3])
+        notes_summary = ' | '.join(all_notes)
         
         # Build combined text
         combined = ""
@@ -91,9 +93,9 @@ ALL SESSION NOTES (for Plan):
 {notes_summary if notes_summary else 'No notes available'}
 
 ALL SESSIONS DATA:
-{combined[:2000]}
+{combined}
 
-Create the summary:<|end|>
+Create a comprehensive summary:<|end|>
 <|assistant|>
 """
         return prompt
@@ -112,9 +114,9 @@ class SummarizationService:
             self.config = OllamaConfig(
                 base_url=os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434'),
                 model_name=model_name,
-                max_tokens=150,
+                max_tokens=2000,
                 temperature=0.7,
-                timeout=120
+                timeout=180
             )
             
             self.engine = OllamaInferenceEngine(self.config)
@@ -135,12 +137,12 @@ class SummarizationService:
             
             self.config = InferenceConfig(
                 model_path=model_path,
-                n_ctx=int(os.getenv('PHI3_N_CTX', '2048')),
+                n_ctx=int(os.getenv('PHI3_N_CTX', '4096')),
                 n_threads=int(os.getenv('PHI3_N_THREADS', '4')),
                 n_gpu_layers=int(os.getenv('PHI3_N_GPU_LAYERS', '0')),
-                max_tokens=150,
+                max_tokens=2000,
                 temperature=0.7,
-                timeout=45
+                timeout=180
             )
             
             self.engine = LlamaInferenceEngine(self.config)
@@ -177,7 +179,7 @@ class SummarizationService:
             # Generate summary
             import time
             start_time = time.time()
-            summary = self.engine.generate(prompt, max_tokens=150)
+            summary = self.engine.generate(prompt, max_tokens=2000)
             inference_time = time.time() - start_time
             
             self.total_inference_time += inference_time
@@ -216,7 +218,7 @@ class SummarizationService:
             # Generate
             import time
             start_time = time.time()
-            summary = self.engine.generate_with_timeout(prompt, timeout=180)
+            summary = self.engine.generate_with_timeout(prompt, timeout=180, max_tokens=2000)
             inference_time = time.time() - start_time
             
             self.total_inference_time += inference_time
@@ -255,7 +257,7 @@ class SummarizationService:
             # Generate
             import time
             start_time = time.time()
-            summary = self.engine.generate_with_timeout(prompt, timeout=180)
+            summary = self.engine.generate_with_timeout(prompt, timeout=180, max_tokens=2000)
             inference_time = time.time() - start_time
             
             self.total_inference_time += inference_time
@@ -335,14 +337,11 @@ class SummarizationService:
         # If no proper formatting, return as-is
         return output
     
-    def _fallback(self, text: str, max_length: int = 250) -> str:
-        """Fallback summary when model fails"""
+    def _fallback(self, text: str, max_length: int = 5000) -> str:
+        """Fallback summary when model fails - returns full text"""
         self.fallback_count += 1
-        sentences = text.split('.')[:5]
+        sentences = text.split('.')
         fallback = '. '.join([s.strip() for s in sentences if s.strip()]) + '.'
-        
-        if len(fallback) > max_length:
-            fallback = fallback[:max_length] + '...'
         
         self.logger.info(f"⚠️  Using fallback summary")
         return fallback

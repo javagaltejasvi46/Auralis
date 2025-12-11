@@ -468,6 +468,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     minHeight: 150,
+    maxHeight: undefined,
     ...CARD_WITH_GLOW,
   },
   notesTextInput: {
@@ -480,6 +481,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.textOnDarkTeal,
     lineHeight: 24,
+    flex: 1,
   },
   placeholderText: {
     fontSize: 16,

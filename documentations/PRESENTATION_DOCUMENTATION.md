@@ -389,7 +389,80 @@ Deliver a production-ready, HIPAA-compliant medical transcription platform that 
 
 ---
 
-### 3.9 System Configuration
+### 3.9 Enhanced Patient Reports (NEW)
+
+**US-028: Search Patients Intelligently**
+- **As a** therapist
+- **I want to** search for patients by name, phone, or ID with smart matching
+- **So that** I can quickly find patients even with partial or fuzzy matches
+
+**Acceptance Criteria:**
+- Auto-detect query type (name/phone/ID)
+- Fuzzy matching for typos
+- Relevance scoring and ranking
+- Phone number normalization
+- Real-time search results
+- Match field highlighting
+
+**US-029: Generate Professional PDF Reports**
+- **As a** therapist
+- **I want to** export comprehensive patient reports as professional PDFs
+- **So that** I can share with other healthcare providers or for records
+
+**Acceptance Criteria:**
+- Follow psychotherapy report format
+- Include all patient demographics and history
+- AI-generated clinical assessments
+- Session summaries with formatting
+- Editable before export
+- Professional layout with proper spacing
+- Risk keywords highlighted in red
+- Therapist signature section
+
+**US-030: Edit Report Before Export**
+- **As a** therapist
+- **I want to** review and edit all report data before generating PDF
+- **So that** I can ensure accuracy and add personal observations
+
+**Acceptance Criteria:**
+- Pre-populated with patient data and AI summaries
+- All fields editable
+- Real-time preview
+- Save edits before export
+- Validation for required fields
+- Cancel option to return without exporting
+
+**US-031: Generate Overall Patient Summary**
+- **As a** therapist
+- **I want to** generate a comprehensive summary across all patient sessions
+- **So that** I can quickly understand patient history and progress
+
+**Acceptance Criteria:**
+- Analyze all session transcriptions
+- Generate chief complaints
+- Assess course of illness
+- Create baseline mental status examination
+- Use smart defaults for missing data
+- Editable after generation
+- Include latest session highlights
+
+**US-032: AI Clinical Field Generation**
+- **As a** therapist
+- **I want to** have AI automatically generate clinical assessment fields
+- **So that** I can save time on initial documentation
+
+**Acceptance Criteria:**
+- Generate from session transcriptions
+- Concise 1-2 word answers for clinical fields
+- JSON-based reliable parsing
+- Fallback to sensible defaults
+- Extract from existing notes when available
+- Professional clinical terminology
+- Editable after generation
+
+---
+
+### 3.10 System Configuration
 
 **US-024: Auto-Network Configuration**
 - **As a** therapist
@@ -419,7 +492,7 @@ Deliver a production-ready, HIPAA-compliant medical transcription platform that 
 
 ---
 
-### 3.10 Reporting & Analytics (Future)
+### 3.11 Reporting & Analytics (Future)
 
 **US-026: Session Analytics**
 - **As a** therapist
@@ -605,20 +678,29 @@ Deliver a production-ready, HIPAA-compliant medical transcription platform that 
 - **Customization**: Editable after generation
 - **Accuracy**: Professional-grade summaries
 
-#### Patient Management
+#### Enhanced Patient Management
 - **Profiles**: Unlimited patients per therapist
-- **Fields**: Demographics, medical history, notes
+- **Extended Fields**: 45+ comprehensive fields including:
+  - Patient Information (age, residence, education, occupation, marital status)
+  - Medical History (current/past conditions, medications, allergies, hospitalizations)
+  - Psychiatric History (diagnoses, treatment, hospitalizations, suicide/self-harm history)
+  - Family History (psychiatric/medical illness, family dynamics, significant events)
+  - Social History (childhood development, education, occupation, relationships, living situation)
+  - Clinical Assessment (chief complaint, illness onset/progression, triggers, impact)
+  - Mental Status Examination (appearance, behavior, speech, mood, affect, thought process/content, perception, cognition, insight, judgment)
 - **Sessions**: Complete session history
-- **Search**: Quick patient lookup (future)
-- **Export**: PDF/CSV export (future)
+- **Search**: ✅ Smart patient search by name, phone, or patient ID with relevance scoring
+- **Export**: ✅ Professional PDF reports with psychotherapy format
 
 #### Session Management
 - **Recording**: High-quality audio capture
 - **Storage**: Local and cloud options
 - **History**: Chronological session list
-- **Notes**: Clinical observations
+- **Notes**: ✅ AI-generated clinical notes with edit capability
 - **Diagnosis**: Treatment plans
 - **Completion**: Session status tracking
+- **Audio Upload**: Direct audio file upload support
+- **Metadata Tracking**: AI generation timestamps and edit history
 
 ### 5.2 Advanced Features
 
@@ -650,6 +732,31 @@ Deliver a production-ready, HIPAA-compliant medical transcription platform that 
 - **Backend**: Settings adjusted
 - **Cache**: IP cached for speed
 - **Reconfiguration**: On network change
+
+#### ✅ NEW: Smart Patient Search
+- **Query Type Detection**: Automatically detects if searching by name, phone, or patient ID
+- **Fuzzy Matching**: Finds patients even with typos or partial matches
+- **Relevance Scoring**: Results ranked by match quality
+- **Phone Normalization**: Handles different phone number formats
+- **Real-time Results**: Instant search as you type
+- **Match Highlighting**: Shows which field matched the query
+
+#### ✅ NEW: Professional PDF Reports
+- **Psychotherapy Format**: Follows standard clinical report structure
+- **Comprehensive Sections**: All patient information, medical/psychiatric/family/social history
+- **AI-Generated Clinical Fields**: Chief complaints, course of illness, mental status examination
+- **Session Summaries**: Latest session highlighted, all sessions with formatted notes
+- **Editable Before Export**: Review and edit all data before generating PDF
+- **Professional Formatting**: Bold headers, proper spacing, section separators
+- **Risk Highlighting**: Red text for urgent keywords in session notes
+- **Therapist Signature**: Includes therapist name and date
+
+#### ✅ NEW: Overall Patient Summary
+- **Multi-Session Analysis**: AI analyzes all sessions to generate comprehensive summary
+- **Clinical Field Generation**: Automatically generates chief complaints, course of illness, baseline assessment
+- **Smart Defaults**: Uses sensible clinical defaults when data is limited
+- **JSON-Based Parsing**: Reliable AI response parsing with fallback mechanisms
+- **Editable Output**: All AI-generated fields can be reviewed and edited
 
 ### 5.3 Security Features
 
@@ -999,6 +1106,146 @@ Authorization: Bearer <token>
 }
 ```
 
+#### GET /patients/search (NEW)
+Search patients by name, phone, or patient ID with smart matching.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Query Parameters:**
+- `q` (string, required, min 2 characters): Search query
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "query": "john",
+  "query_type": "name",
+  "count": 3,
+  "results": [
+    {
+      "patient": {
+        "id": 1,
+        "patient_id": "P001",
+        "full_name": "John Doe",
+        "phone": "+1234567890"
+      },
+      "relevance_score": 100,
+      "match_field": "name",
+      "match_positions": [0, 4]
+    }
+  ]
+}
+```
+
+#### GET /patients/{patient_id}/overall-summary (NEW)
+Generate comprehensive AI summary for a patient across all sessions.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "overall_summary": {
+    "patient_info": {...},
+    "chief_complaints": {
+      "primary": "Depression",
+      "description": "Persistent low mood for 3 months"
+    },
+    "course_of_illness": {
+      "onset": "Gradual",
+      "progression": "Worsening",
+      "previous_episodes": "Two previous episodes",
+      "triggers": "Work stress",
+      "impact_on_functioning": "Moderate"
+    },
+    "baseline_assessment": {
+      "appearance": "Appropriate",
+      "behavior": "Cooperative",
+      "speech": "Normal",
+      "mood": "Depressed",
+      "affect": "Constricted",
+      "thought_process": "Linear",
+      "thought_content": "Negative cognitions",
+      "perception": "Intact",
+      "cognition": "Intact",
+      "insight": "Good",
+      "judgment": "Fair"
+    },
+    "session_summaries": [...]
+  }
+}
+```
+
+#### GET /patients/{patient_id}/report-data (NEW)
+Get all report data for editing before PDF export.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "report_data": {
+    "patient_info": {...},
+    "chief_complaints": {...},
+    "course_of_illness": {...},
+    "baseline_assessment": {...},
+    "session_summaries": [...]
+  },
+  "therapist_name": "Dr. John Smith",
+  "generated_date": "2025-12-05T10:00:00"
+}
+```
+
+#### POST /patients/{patient_id}/export-pdf (NEW)
+Export patient report as PDF with user-edited data.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "patient_name": "John Doe",
+  "patient_age": "35",
+  "patient_gender": "Male",
+  "chief_complaint": "Depression",
+  "chief_complaint_description": "Persistent low mood",
+  "illness_onset": "Gradual",
+  "mse_mood": "Depressed",
+  "session_summaries": [...]
+}
+```
+
+**Response (200 OK):**
+- Content-Type: application/pdf
+- File download: patient_P001_report.pdf
+
+#### GET /patients/{patient_id}/export-pdf (NEW)
+Export patient report as PDF without edits (uses stored data).
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response (200 OK):**
+- Content-Type: application/pdf
+- File download: patient_P001_report.pdf
+
 ---
 
 ### 7.3 Session Endpoints
@@ -1161,7 +1408,93 @@ Authorization: Bearer <token>
 
 ---
 
-### 7.4 AI Summarization Endpoints
+### 7.4 Notes Management Endpoints (NEW)
+
+#### POST /notes/{session_id}/generate-notes
+Generate AI clinical notes for a session.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+```json
+{
+  "regenerate": false
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "session_id": 1,
+  "notes": "**Chief Complaint:** Depression\n**Emotional State:** Sad\n**Risk:** {{RED:None}}\n**Intervention:** CBT techniques\n**Progress:** Improving\n**Plan:** Continue weekly sessions",
+  "is_ai_generated": true,
+  "generated_at": "2025-12-05T10:00:00",
+  "can_edit": true
+}
+```
+
+#### PUT /notes/{session_id}/notes
+Update session notes after editing.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+```json
+{
+  "notes": "Updated clinical notes...",
+  "is_ai_generated": true,
+  "edited_from_ai": true
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Notes updated successfully",
+  "session": {
+    "id": 1,
+    "notes": "Updated clinical notes...",
+    "notes_is_ai_generated": true,
+    "notes_edited_from_ai": true,
+    "notes_last_edited_at": "2025-12-05T10:05:00"
+  }
+}
+```
+
+#### GET /notes/{session_id}
+Get session with notes metadata.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "session": {
+    "id": 1,
+    "notes": "Clinical notes...",
+    "notes_is_ai_generated": true,
+    "notes_edited_from_ai": false,
+    "notes_generated_at": "2025-12-05T10:00:00",
+    "notes_last_edited_at": null
+  }
+}
+```
+
+---
+
+### 7.5 AI Summarization Endpoints
 
 #### POST /sessions/{session_id}/generate-notes
 Generate AI clinical notes for a session.
@@ -1252,7 +1585,7 @@ Authorization: Bearer <token>
 
 ---
 
-### 7.5 Translation Endpoint
+### 7.6 Translation Endpoint
 
 #### POST /translate
 Translate text to target language.
@@ -1279,7 +1612,7 @@ Translate text to target language.
 
 ---
 
-### 7.6 Health Check Endpoint
+### 7.7 Health Check Endpoint
 
 #### GET /health
 Check system health and model status.
@@ -1301,7 +1634,7 @@ Check system health and model status.
 
 ---
 
-### 7.7 WebSocket Protocol (Port 8003)
+### 7.8 WebSocket Protocol (Port 8003)
 
 #### Connection
 ```javascript

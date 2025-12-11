@@ -1,0 +1,98 @@
+PSYCHOTHERAPY REPORT FORMAT
+________________________________________
+PATIENT INFORMATION
+Name: _____________________________
+Age: _____________________________
+Gender: _____________________________
+Date of Birth: _____________________________
+Residence: _____________________________
+Education: _____________________________
+Occupation: _____________________________
+Marital Status: _____________________________
+Date of Assessment: _____________________________
+________________________________________
+MEDICAL HISTORY
+Current Medical Conditions: _____________________________
+Past Medical Conditions: _____________________________
+Current Medications: _____________________________
+Allergies: _____________________________
+Hospitalizations: _____________________________
+________________________________________
+PSYCHIATRIC HISTORY
+Previous Psychiatric Diagnoses: _____________________________
+Previous Psychiatric Treatment: _____________________________
+Previous Hospitalizations (Psychiatric): _____________________________
+Suicide Attempts/Self-Harm History: _____________________________
+Substance Use History: _____________________________
+________________________________________
+
+FAMILY HISTORY
+Psychiatric Illness in Family: _____________________________
+Medical Illness in Family: _____________________________
+Family Dynamics: _____________________________
+Significant Family Events: _____________________________
+________________________________________
+SOCIAL HISTORY
+Childhood/Developmental History: _____________________________
+Educational History: _____________________________
+Occupational History: _____________________________
+Relationship History: _____________________________
+Social Support System: _____________________________
+Living Situation: _____________________________
+Cultural/Religious Background: _____________________________
+________________________________________
+
+
+
+
+
+
+
+
+
+
+
+
+
+CHIEF COMPLAINTS
+Primary Complaint: _____________________________
+Description: 
+________________________________________
+COURSE OF ILLNESS
+Onset: _____________________________
+Progression: _____________________________
+Previous Episodes: _____________________________
+Triggers: _____________________________
+Impact on Functioning: _____________________________
+________________________________________
+
+BASELINE ASSESSMENT
+Mental Status Examination
+Appearance: _____________________________
+Behavior: _____________________________
+Speech: _____________________________
+Mood: _____________________________
+Affect: _____________________________
+Thought Process: _____________________________
+Thought Content: _____________________________
+Perception: _____________________________
+Cognition: _____________________________
+Insight: _____________________________
+Judgment: _____________________________
+________________________________________
+
+
+SESSION RECORDING FORM
+Session #: _____ | Date: _____________________________
+Topics Discussed: _____________________________
+Interventions Used: _____________________________
+Client Progress: _____________________________
+Homework Assigned: _____________________________
+Therapist Observations: _____________________________
+Plan for Next Session: _____________________________
+________________________________________
+Therapist Name: _____________________________
+Therapist Signature: _____________________________
+Date: _____________________________
+________________________________________
+

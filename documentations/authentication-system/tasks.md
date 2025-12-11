@@ -1,0 +1,183 @@
+# Implementation Plan
+
+- [x] 1. Create Therapist Database Model
+  - [x] 1.1 Create Therapist model in backend/models.py
+    - Add id, email, username, hashed_password, full_name fields
+    - Add optional fields: license_number, specialization, phone
+    - Add status fields: is_active, is_verified
+    - Add timestamps: created_at, last_login
+    - Add relationship to Patient model (one-to-many)
+    - Create unique constraints on email and username
+    - _Requirements: 1.1, 1.2_
+  - [x]* 1.2 Write property test for model validation
+    - **Property 6: Registration Uniqueness**
+    - **Validates: Requirements 1.5**
+
+- [x] 2. Implement Password Security
+  - [x] 2.1 Create password hashing utilities in backend/auth.py
+    - Implement hash_password() using bcrypt with cost factor 12
+    - Implement verify_password() with constant-time comparison
+    - Generate unique salt for each password
+    - _Requirements: 6.1, 6.2, 6.3, 6.4_
+  - [x]* 2.2 Write property test for password hash uniqueness
+    - **Property 1: Password Hash Uniqueness**
+    - **Validates: Requirements 6.2**
+  - [x]* 2.3 Write property test for password verification
+    - **Property 2: Password Verification Consistency**
+    - **Validates: Requirements 6.3**
+
+- [x] 3. Implement JWT Token Management
+  - [x] 3.1 Create JWT utilities in backend/auth.py
+    - Implement create_access_token() with 24-hour expiration
+    - Implement verify_token() with expiration checking
+    - Configure SECRET_KEY from environment variable
+    - Use HS256 algorithm
+    - Include therapist_id in token payload
+    - _Requirements: 2.1, 2.4, 3.1, 3.2, 3.5_
+  - [x]* 3.2 Write property test for token payload
+    - **Property 3: Token Contains Therapist ID**
+    - **Validates: Requirements 3.5**
+  - [x]* 3.3 Write property test for token expiration
+    - **Property 4: Token Expiration Enforcement**
+    - **Validates: Requirements 3.3**
+  - [x]* 3.4 Write property test for token validation
+    - **Property 8: Token Validation Rejects Invalid Tokens**
+    - **Validates: Requirements 3.3, 3.4**
+
+- [x] 4. Create Authentication Router
+  - [x] 4.1 Create auth_router.py with registration endpoint
+    - POST /auth/register endpoint
+    - Validate email, username, password, full_name
+    - Check for duplicate email/username
+    - Hash password before storing
+    - Create therapist record in database
+    - Return therapist profile without password
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
+  - [x] 4.2 Create login endpoint
+    - POST /auth/login endpoint
+    - Validate credentials
+    - Verify password hash
+    - Generate JWT token
+    - Update last_login timestamp
+    - Return token and therapist profile
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
+  - [x] 4.3 Create get current user endpoint
+    - GET /auth/me endpoint
+    - Require valid JWT token
+    - Extract therapist_id from token
+    - Return therapist profile with patient count
+    - _Requirements: 4.1, 4.2, 4.3_
+  - [x] 4.4 Create logout endpoint
+    - POST /auth/logout endpoint
+    - Return success message (client-side token removal)
+    - _Requirements: 5.1, 5.2, 5.3_
+
+- [x] 5. Checkpoint - Verify authentication endpoints
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 6. Implement Token Middleware
+  - [x] 6.1 Create get_current_therapist dependency
+    - Extract token from Authorization header
+    - Validate token and extract therapist_id
+    - Query therapist from database
+    - Verify therapist is active
+    - Return therapist object for use in endpoints
+    - Handle invalid/expired tokens with 401 errors
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+
+- [x] 7. Implement Data Isolation
+  - [x] 7.1 Add therapist_id filtering to all patient queries
+    - Filter patients by therapist_id from token
+    - Filter sessions by patient's therapist_id
+    - Return 404 for unauthorized access attempts
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
+  - [x]* 7.2 Write property test for data isolation
+    - **Property 5: Data Isolation by Therapist**
+    - **Validates: Requirements 7.1, 7.2, 7.3**
+
+- [x] 8. Create Frontend Authentication Service
+  - [x] 8.1 Create AuthService in frontend/src/services/api.ts
+    - Implement register() method
+    - Implement login() method
+    - Implement logout() method
+    - Implement getCurrentUser() method
+    - Implement token storage methods (getToken, setToken, removeToken)
+    - Implement isAuthenticated() check
+    - _Requirements: 1.1, 2.1, 4.1, 5.1_
+
+- [x] 9. Create Authentication Context
+  - [x] 9.1 Create AuthContext in frontend/src/contexts/AuthContext.tsx
+    - Manage therapist state
+    - Manage token state
+    - Manage loading state
+    - Provide login function
+    - Provide logout function
+    - Provide register function
+    - Auto-load user on app start if token exists
+    - _Requirements: 2.1, 4.1, 5.1_
+
+- [x] 10. Create Login Screen
+  - [x] 10.1 Create LoginScreen in frontend/src/screens/LoginScreen.tsx
+    - Username/email input field
+    - Password input field
+    - Login button
+    - Link to registration screen
+    - Handle login errors
+    - Show loading state
+    - Navigate to dashboard on success
+    - _Requirements: 2.1, 2.2, 2.5_
+
+- [x] 11. Create Registration Screen
+  - [x] 11.1 Create RegisterScreen in frontend/src/screens/RegisterScreen.tsx
+    - Email input field
+    - Username input field
+    - Password input field
+    - Full name input field
+    - Optional fields (license, specialization, phone)
+    - Register button
+    - Link to login screen
+    - Handle registration errors
+    - Show loading state
+    - Navigate to dashboard on success
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
+
+- [x] 12. Implement Protected Routes
+  - [x] 12.1 Add authentication check to navigation
+    - Check if user is authenticated before showing main app
+    - Redirect to login if not authenticated
+    - Show loading screen while checking auth status
+    - _Requirements: 3.1, 3.2_
+
+- [x] 13. Add Token to API Requests
+  - [x] 13.1 Update API service to include Authorization header
+    - Get token from storage
+    - Add "Bearer <token>" to all protected requests
+    - Handle 401 errors by logging out user
+    - _Requirements: 3.1, 3.2, 3.3, 3.4_
+
+- [x] 14. Checkpoint - Verify authentication flow
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 15. Implement Error Handling
+  - [x] 15.1 Add comprehensive error handling
+    - Handle network errors
+    - Handle validation errors
+    - Handle authentication errors
+    - Handle token expiration
+    - Show user-friendly error messages
+    - _Requirements: 2.5, 3.3, 3.4, 5.3_
+
+- [x] 16. Add Security Features
+  - [x] 16.1 Implement security best practices
+    - Use HTTPS in production
+    - Secure token storage
+    - Implement CORS properly
+    - Add rate limiting (future)
+    - Add password strength validation (future)
+    - _Requirements: 6.1, 6.4, 6.5_
+  - [x]* 16.2 Write property test for login timestamp update
+    - **Property 7: Login Updates Timestamp**
+    - **Validates: Requirements 2.3**
+
+- [x] 17. Final Checkpoint - Complete integration testing
+  - Ensure all tests pass, ask the user if questions arise.

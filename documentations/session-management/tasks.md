@@ -1,0 +1,193 @@
+# Implementation Plan
+
+- [x] 1. Create Session Database Model
+  - [x] 1.1 Create Session model in backend/models.py
+    - Add id, patient_id, session_number, session_date, duration, language fields
+    - Add transcription fields: original_transcription, translated_transcription, translation_language
+    - Add audio fields: audio_file_path, audio_file_size
+    - Add clinical fields: notes, diagnosis, treatment_plan
+    - Add status field: is_completed
+    - Add AI metadata fields: notes_is_ai_generated, notes_edited_from_ai, notes_generated_at, notes_last_edited_at
+    - Add timestamps: created_at, updated_at
+    - Add foreign key relationship to Patient
+    - _Requirements: 1.1, 1.2, 6.1, 6.2, 7.1, 7.2, 7.3, 7.4_
+  - [x]* 1.2 Write property test for session number auto-increment
+    - **Property 1: Session Number Auto-Increment**
+    - **Validates: Requirements 1.1**
+
+- [x] 2. Implement Session Number Auto-Increment
+  - [x] 2.1 Create get_next_session_number utility function
+    - Query maximum session_number for patient
+    - Return max + 1 (or 1 if no sessions exist)
+    - Handle concurrent session creation
+    - _Requirements: 1.1_
+
+- [x] 3. Create Session Router
+  - [x] 3.1 Create session_router.py with create session endpoint
+    - POST /sessions/ endpoint
+    - Validate patient_id, language, duration, transcription
+    - Auto-generate session_number
+    - Set session_date to current time
+    - Create session record in database
+    - Return session details
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
+  - [x] 3.2 Create get patient sessions endpoint
+    - GET /sessions/patient/{patient_id} endpoint
+    - Verify patient belongs to authenticated therapist
+    - Query all sessions for patient
+    - Order by session_date descending
+    - Return session list with summaries
+    - _Requirements: 2.1, 2.2, 2.3, 8.1_
+  - [x]* 3.3 Write property test for session retrieval ordering
+    - **Property 2: Session Retrieval Ordering**
+    - **Validates: Requirements 2.2**
+  - [x] 3.4 Create get session details endpoint
+    - GET /sessions/{session_id} endpoint
+    - Verify session belongs to therapist's patient
+    - Return complete session details
+    - Include patient and therapist names
+    - _Requirements: 2.4, 2.5, 8.2_
+  - [x] 3.5 Create update session endpoint
+    - PUT /sessions/{session_id} endpoint
+    - Verify ownership before update
+    - Allow updating transcription, notes, diagnosis, treatment_plan, is_completed
+    - Update updated_at timestamp
+    - Preserve created_at timestamp
+    - Return updated session
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 8.3_
+  - [x]* 3.6 Write property test for transcription preservation
+    - **Property 3: Transcription Preservation**
+    - **Validates: Requirements 6.4**
+  - [x]* 3.7 Write property test for timestamp updates
+    - **Property 5: Metadata Timestamp Updates**
+    - **Validates: Requirements 3.5**
+
+- [x] 4. Checkpoint - Verify session CRUD operations
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 5. Implement Audio File Management
+  - [x] 5.1 Create file management utilities
+    - Create uploads/sessions directory structure
+    - Implement save_audio_file() function
+    - Implement delete_audio_file() function
+    - Generate unique filenames with UUID
+    - Validate file extensions (.wav, .m4a, .mp3)
+    - Validate file size (max 500MB)
+    - _Requirements: 4.1, 4.2, 4.3, 4.5_
+  - [x]* 5.2 Write property test for audio file format validation
+    - **Property 8: Audio File Format Validation**
+    - **Validates: Requirements 4.1, 4.5**
+  - [x] 5.3 Create audio upload endpoint
+    - POST /sessions/{session_id}/audio endpoint
+    - Accept multipart/form-data file upload
+    - Validate file format and size
+    - Save file to patient-specific directory
+    - Update session with file_path and file_size
+    - Return file information
+    - _Requirements: 4.1, 4.2, 4.3, 4.4_
+
+- [x] 6. Implement Session Deletion
+  - [x] 6.1 Create delete session endpoint
+    - DELETE /sessions/{session_id} endpoint
+    - Verify ownership before deletion
+    - Delete audio file if exists
+    - Delete session record from database
+    - Return success confirmation
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 8.4_
+  - [x]* 6.2 Write property test for audio file deletion
+    - **Property 4: Audio File Deletion on Session Delete**
+    - **Validates: Requirements 5.2**
+
+- [x] 7. Implement AI Metadata Tracking
+  - [x] 7.1 Add metadata fields to session updates
+    - Track notes_is_ai_generated flag
+    - Track notes_edited_from_ai flag
+    - Track notes_generated_at timestamp
+    - Track notes_last_edited_at timestamp
+    - Update flags when notes are edited
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
+  - [x]* 7.2 Write property test for AI metadata tracking
+    - **Property 6: AI Metadata Tracking**
+    - **Validates: Requirements 7.2, 7.4**
+
+- [x] 8. Implement Data Isolation
+  - [x] 8.1 Add ownership verification to all session endpoints
+    - Verify patient belongs to authenticated therapist
+    - Return 404 for unauthorized access attempts
+    - Filter all queries by therapist_id
+    - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
+  - [x]* 8.2 Write property test for data isolation
+    - **Property 7: Data Isolation Enforcement**
+    - **Validates: Requirements 8.1, 8.2, 8.3**
+
+- [x] 9. Checkpoint - Verify audio and security features
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 10. Create Frontend Session Service
+  - [x] 10.1 Create SessionService in frontend/src/services/api.ts
+    - Implement createSession() method
+    - Implement getPatientSessions() method
+    - Implement getSession() method
+    - Implement updateSession() method
+    - Implement uploadAudio() method
+    - Implement deleteSession() method
+    - _Requirements: 1.1, 2.1, 2.4, 3.1, 4.1, 5.1_
+
+- [x] 11. Create Session Recording Screen
+  - [x] 11.1 Create SessionRecordingScreen in frontend/src/screens/
+    - Audio recording interface
+    - Real-time transcription display
+    - Session duration timer
+    - Stop recording button
+    - Save session functionality
+    - Handle recording errors
+    - _Requirements: 1.1, 1.2, 1.3_
+
+- [x] 12. Create Session Detail Screen
+  - [x] 12.1 Create SessionDetailScreen in frontend/src/screens/
+    - Display session information (number, date, duration)
+    - Display transcription (original and translated)
+    - Display clinical notes
+    - Edit notes functionality
+    - Update session functionality
+    - Delete session with confirmation
+    - Show AI metadata (if AI-generated)
+    - _Requirements: 2.4, 3.1, 3.2, 5.1, 7.1_
+
+- [x] 13. Implement Audio Upload in Frontend
+  - [x] 13.1 Add audio file upload functionality
+    - File picker for audio files
+    - Upload progress indicator
+    - Handle upload errors
+    - Update session with audio file info
+    - _Requirements: 4.1, 4.2, 4.3_
+
+- [x] 14. Add Session List to Patient Profile
+  - [x] 14.1 Display session list in PatientProfileScreen
+    - Show all sessions for patient
+    - Display session number, date, duration
+    - Show completion status
+    - Navigate to session detail on tap
+    - Show loading and error states
+    - _Requirements: 2.1, 2.2, 2.3_
+
+- [x] 15. Implement Error Handling
+  - [x] 15.1 Add comprehensive error handling
+    - Handle network errors
+    - Handle validation errors
+    - Handle file upload errors
+    - Handle not found errors
+    - Show user-friendly error messages
+    - _Requirements: 2.5, 3.4, 4.4, 5.5_
+
+- [x] 16. Add Delete Confirmation
+  - [x] 16.1 Implement delete confirmation dialog
+    - Show warning before deletion
+    - Explain that deletion is permanent
+    - Require explicit confirmation
+    - Handle deletion errors
+    - Navigate back on success
+    - _Requirements: 5.1, 5.4_
+
+- [x] 17. Final Checkpoint - Complete integration testing
+  - Ensure all tests pass, ask the user if questions arise.
